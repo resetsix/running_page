@@ -78,8 +78,8 @@ const getUIText = (language: Language) => {
     ? '跑步, running, 热力图, 运动数据, 地图'
     : 'running, heatmap, activity data, map';
   const siteDescription = isChinese
-    ? '个人跑步记录页面，由 Keep、GitHub Actions 与 Netlify 提供支持。'
-    : 'Personal running log powered by Keep, GitHub Actions, and Netlify.';
+    ? '个人跑步记录页面，由 Keep 提供数据支持。'
+    : 'Personal running log with data provided by Keep.';
   const totalLabel = isChinese ? '总览' : 'Total';
   const lifeLabel = isChinese ? '生涯' : 'Life';
   const yearFilterLabel = isChinese ? '年份' : 'Year';
