@@ -18,7 +18,6 @@ import {
 } from 'recharts';
 import VirtualList from 'rc-virtual-list';
 import { useNavigate } from 'react-router-dom';
-import activities from '@/static/activities.json';
 import styles from './style.module.css';
 import { ACTIVITY_TOTAL, LOADING_TEXT } from '@/utils/const';
 import { totalStat, yearSummaryStats } from '@assets/index';
@@ -27,6 +26,7 @@ import { SHOW_ELEVATION_GAIN, HOME_PAGE_TITLE } from '@/utils/const';
 import { DIST_UNIT, M_TO_DIST } from '@/utils/utils';
 import RoutePreview from '@/components/RoutePreview';
 import { Activity } from '@/utils/utils';
+import { visibleActivities as activities } from '@/utils/activityVisibility';
 // Layout constants (avoid magic numbers)
 const ITEM_WIDTH = 280;
 const ITEM_GAP = 20;

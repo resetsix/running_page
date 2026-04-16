@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { locationForRun, titleForRun } from '@/utils/utils';
-import activities from '@/static/activities.json';
 import { COUNTRY_STANDARDIZATION } from '@/static/city';
+import { visibleActivities } from '@/utils/activityVisibility';
 
 const standardizeCountryName = (country: string): string => {
   for (const [pattern, standardName] of COUNTRY_STANDARDIZATION) {
@@ -20,7 +20,7 @@ const useActivities = () => {
     const countries: Set<string> = new Set();
     const years: Set<string> = new Set();
 
-    activities.forEach((run) => {
+    visibleActivities.forEach((run) => {
       const location = locationForRun(run);
 
       const periodName = titleForRun(run);
@@ -47,7 +47,7 @@ const useActivities = () => {
     const thisYear = yearsArray[0] || '';
 
     return {
-      activities,
+      activities: visibleActivities,
       years: yearsArray,
       countries: [...countries],
       provinces: [...provinces],
@@ -55,7 +55,7 @@ const useActivities = () => {
       runPeriod,
       thisYear,
     };
-  }, []); // Empty dependency array since activities is static
+  }, []); // Empty dependency array since activity data is static
 
   return processedData;
 };

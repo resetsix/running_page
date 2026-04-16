@@ -104,6 +104,21 @@ const LOADING_TEXT = IS_CHINESE ? '加载中...' : 'Loading...';
 const NO_ROUTE_DATA = IS_CHINESE ? '暂无路线数据' : 'No route data';
 const INVALID_ROUTE_DATA = IS_CHINESE ? '路线数据无效' : 'Invalid route data';
 
+// Hide activities on specific local dates in the UI without changing source data.
+// Format: YYYY-MM-DD
+const HIDDEN_ACTIVITY_DATES = [
+  '2025-09-27',
+  '2023-11-22',
+  '2023-10-05',
+  '2023-10-02',
+  '2023-08-27',
+  '2023-03-15',
+  '2022-06-11',
+  '2022-06-10',
+  '2022-06-09',
+  '2022-06-08',
+];
+
 const ACTIVITY_TYPES = {
   RUN_GENERIC_TITLE,
   RUN_TRAIL_TITLE,
@@ -168,6 +183,7 @@ export {
   LOADING_TEXT,
   NO_ROUTE_DATA,
   INVALID_ROUTE_DATA,
+  HIDDEN_ACTIVITY_DATES,
 };
 
 const nike = 'rgb(224,237,94)'; // if you want to change the main color, modify this value in src/styles/variables.scss
