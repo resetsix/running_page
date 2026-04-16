@@ -5,3 +5,8 @@
 [build.environment]
   NODE_VERSION = "20"
   PNPM_VERSION = "8.9.0"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

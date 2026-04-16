@@ -18,7 +18,7 @@ const data: ISiteMetadataResult = {
   siteTitle: 'Resetsix Running',
   siteUrl: '/',
   logo: `${getBasePath()}/images/favicon.png`,
-  description: 'Personal running page powered by Keep sync and Netlify.',
+  description: 'Personal running page powered by Keep sync, GitHub Actions, and Netlify.',
   navLinks: [
     {
       name: 'Summary',
@@ -30,7 +30,7 @@ const data: ISiteMetadataResult = {
     },
     {
       name: 'Setup',
-      url: 'https://github.com/resetsix/running_page',
+      url: 'https://github.com/resetsix/running_page/blob/master/docs/netlify-deployment.md',
     },
   ],
 };
