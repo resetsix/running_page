@@ -18,7 +18,7 @@ const YearStat = ({
   year: string;
   onClick: (_year: string) => void;
 }) => {
-  let { activities: runs, years } = useActivities();
+  let { runningActivities: runs, runningYears } = useActivities();
   const { language } = useLanguage();
   const labels = useLabels();
   // for hover
@@ -39,7 +39,7 @@ const YearStat = ({
     [language, year]
   );
 
-  if (years.includes(year)) {
+  if (runningYears.includes(year)) {
     runs = runs.filter((run) => run.start_date_local.slice(0, 4) === year);
   }
   let sumDistance = 0;

@@ -5,13 +5,13 @@ import useLabels from '@/hooks/useLabels';
 // only support China for now
 const LocationSummary = () => {
   const labels = useLabels();
-  const { years, countries, provinces, cities } = useActivities();
+  const { runningYears, countries, provinces, cities } = useActivities();
   return (
     <div className="cursor-pointer">
       <section>
-        {years ? (
+        {runningYears ? (
           <Stat
-            value={`${years.length}`}
+            value={`${runningYears.length}`}
             description={labels.locationSummaryYearsLabel}
           />
         ) : null}

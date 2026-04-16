@@ -17,6 +17,10 @@ if (USE_GOOGLE_ANALYTICS) {
   ReactGA.initialize(GOOGLE_ANALYTICS_TRACKING_ID);
 }
 
+const routerFuture = {
+  v7_startTransition: true,
+} as const;
+
 const routes = createBrowserRouter(
   [
     {
@@ -32,13 +36,16 @@ const routes = createBrowserRouter(
       element: withOptionalGAPageTracking(<NotFound />),
     },
   ],
-  { basename: import.meta.env.BASE_URL }
+  {
+    basename: import.meta.env.BASE_URL,
+    future: routerFuture,
+  }
 );
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <HelmetProvider>
-      <RouterProvider router={routes} />
+      <RouterProvider router={routes} future={routerFuture} />
     </HelmetProvider>
   </React.StrictMode>
 );

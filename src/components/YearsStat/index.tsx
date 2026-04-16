@@ -12,21 +12,21 @@ const YearsStat = ({
   onClick: (_year: string) => void;
 }) => {
   const labels = useLabels();
-  const { years } = useActivities();
+  const { runningYears } = useActivities();
 
   // Memoize the years array calculation
   const yearsArrayUpdate = useMemo(() => {
     // make sure the year click on front
-    let updatedYears = years.slice();
+    let updatedYears = runningYears.slice();
     updatedYears.push(TOTAL_FILTER_KEY);
     updatedYears = updatedYears.filter((x) => x !== year);
     updatedYears.unshift(year);
     return updatedYears;
-  }, [years, year]);
+  }, [runningYears, year]);
 
   const infoMessage = useMemo(() => {
-    return labels.infoMessage(years.length, year);
-  }, [labels, years.length, year]);
+    return labels.infoMessage(runningYears.length, year);
+  }, [labels, runningYears.length, year]);
 
   // for short solution need to refactor
   return (

@@ -46,6 +46,16 @@
   box-sizing: border-box;
 }
 
+.filterSelectLife {
+  border-color: var(--color-activity-card) !important;
+}
+
+.filterOptionDisabled {
+  color: rgba(255, 255, 255, 0.35);
+  background-color: var(--color-run-row-hover-background);
+  font-style: italic;
+}
+
 .summaryContainer {
   /* display: grid;
   justify-content: center;
@@ -223,6 +233,11 @@
   box-sizing: content-box;
 }
 
+.staticList {
+  display: flex;
+  flex-direction: column;
+}
+
 /* Row container used by VirtualList rows */
 .rowContainer {
   display: flex;
@@ -230,6 +245,14 @@
   justify-content: flex-start;
   padding-right: 12px;
   box-sizing: border-box;
+}
+
+.emptyState {
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-run-table-thead);
 }
 
 /* rc-virtual-list view and body panes: ensure there's a little inner spacing so content doesn't overlap scrollbar */

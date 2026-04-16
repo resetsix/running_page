@@ -95,7 +95,7 @@ const RunMap = ({
 }: IRunMapProps) => {
   const { language } = useLanguage();
   const isChinese = language === 'zh-CN';
-  const { countries, provinces } = useActivities();
+  const { allCountries, allProvinces } = useActivities();
   const mapRef = useRef<MapRef>(null);
   const [lights, setLights] = useState(PRIVACY_MODE ? false : LIGHTS_ON);
   // layers that should remain visible when lights are off
@@ -226,16 +226,16 @@ const RunMap = ({
 
   // Memoize filter arrays to prevent recreating them on every render
   const filterProvinces = useMemo(() => {
-    const filtered = provinces.slice();
+    const filtered = allProvinces.slice();
     filtered.unshift('in', 'name');
     return filtered;
-  }, [provinces]);
+  }, [allProvinces]);
 
   const filterCountries = useMemo(() => {
-    const filtered = countries.slice();
+    const filtered = allCountries.slice();
     filtered.unshift('in', 'name');
     return filtered;
-  }, [countries]);
+  }, [allCountries]);
 
   /**
    * Toggle visibility of map layers based on lights setting

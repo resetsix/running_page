@@ -1,4 +1,3 @@
-import rawActivities from '@/static/activities.json';
 import hiddenActivityDates from '@/static/hidden-activity-dates.json';
 import type { Activity } from '@/utils/utils';
 
@@ -12,8 +11,11 @@ const getActivityLocalDate = (activity: Pick<Activity, 'start_date_local'>) =>
 const isActivityHiddenByDate = (activity: Pick<Activity, 'start_date_local'>) =>
   hiddenActivityDateSet.has(getActivityLocalDate(activity));
 
-const visibleActivities = (rawActivities as Activity[]).filter(
-  (activity) => !isActivityHiddenByDate(activity)
-);
+const filterVisibleActivities = (activities: Activity[]): Activity[] =>
+  activities.filter((activity) => !isActivityHiddenByDate(activity));
 
-export { getActivityLocalDate, isActivityHiddenByDate, visibleActivities };
+export {
+  filterVisibleActivities,
+  getActivityLocalDate,
+  isActivityHiddenByDate,
+};

@@ -21,14 +21,21 @@ import { useNavigate } from 'react-router-dom';
 import styles from './style.module.css';
 import { useLanguage } from '@/hooks/useLanguage';
 import useLabels from '@/hooks/useLabels';
+import rawActivities from '@/static/activities.json';
 import { getLocalizedSvgPath } from '@/utils/language';
 import { totalStat, yearSummaryStats } from '@assets/index';
 import { loadSvgComponent, SvgComponent } from '@/utils/svgUtils';
 import { SHOW_ELEVATION_GAIN } from '@/utils/const';
-import { DIST_UNIT, M_TO_DIST } from '@/utils/utils';
+import {
+  DIST_UNIT,
+  M_TO_DIST,
+  normalizeActivitySportType,
+} from '@/utils/utils';
 import RoutePreview from '@/components/RoutePreview';
 import { Activity } from '@/utils/utils';
-import { visibleActivities as activities } from '@/utils/activityVisibility';
+import { filterVisibleActivities } from '@/utils/activityVisibility';
+
+const visibleActivities = filterVisibleActivities(rawActivities as Activity[]);
 // Layout constants (avoid magic numbers)
 const ITEM_WIDTH = 280;
 const ITEM_GAP = 20;
@@ -348,10 +355,35 @@ const ActivityCard = React.memo(ActivityCardInner, activityCardAreEqual);
 const ActivityList: React.FC = () => {
   const { language } = useLanguage();
   const labels = useLabels();
+  const activities = visibleActivities;
   const [interval, setInterval] = useState<IntervalType>('month');
   const [sportType, setSportType] = useState<string>('all');
-  const [sportTypeOptions, setSportTypeOptions] = useState<string[]>([]);
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const normalizedSportType = useMemo(
+    () =>
+      sportType === 'all' ? 'all' : normalizeActivitySportType(sportType),
+    [sportType]
+  );
+  const sportTypeOptions = useMemo(() => {
+    const sportTypeSet = new Set(
+      activities.map((activity) => normalizeActivitySportType(activity.type))
+    );
+
+    const preferredOrder = [
+      'running',
+      'walking',
+      'cycling',
+      'hiking',
+      'swimming',
+      'skiing',
+    ];
+
+    return [
+      'all',
+      ...preferredOrder.filter((type) => sportTypeSet.has(type)),
+      ...[...sportTypeSet].filter((type) => !preferredOrder.includes(type)),
+    ];
+  }, [activities]);
 
   // Get available years from activities
   const availableYears = useMemo(() => {
@@ -361,7 +393,7 @@ const ActivityList: React.FC = () => {
       years.add(year);
     });
     return Array.from(years).sort((a, b) => Number(b) - Number(a));
-  }, []);
+  }, [activities]);
 
   // Keyboard navigation for year selection in Life view
   useEffect(() => {
@@ -410,30 +442,26 @@ const ActivityList: React.FC = () => {
   }, [interval, selectedYear, availableYears]);
 
   useEffect(() => {
-    const sportTypeSet = new Set(activities.map((activity) => activity.type));
-    if (sportTypeSet.has('Run')) {
-      sportTypeSet.delete('Run');
-      sportTypeSet.add('running');
+    if (sportType !== normalizedSportType) {
+      setSportType(normalizedSportType);
     }
-    if (sportTypeSet.has('Walk')) {
-      sportTypeSet.delete('Walk');
-      sportTypeSet.add('walking');
+  }, [normalizedSportType, sportType]);
+
+  useEffect(() => {
+    if (
+      normalizedSportType !== 'all' &&
+      !sportTypeOptions.includes(normalizedSportType)
+    ) {
+      setSportType('all');
     }
-    if (sportTypeSet.has('Ride')) {
-      sportTypeSet.delete('Ride');
-      sportTypeSet.add('cycling');
-    }
-    const uniqueSportTypes = [...sportTypeSet];
-    uniqueSportTypes.unshift('all');
-    setSportTypeOptions(uniqueSportTypes);
-  }, []);
+  }, [normalizedSportType, sportTypeOptions]);
 
   // 添加useEffect监听interval变化
   useEffect(() => {
-    if (interval === 'life' && sportType !== 'all') {
+    if (interval === 'life' && normalizedSportType !== 'all') {
       setSportType('all');
     }
-  }, [interval, sportType]);
+  }, [interval, normalizedSportType]);
 
   const navigate = useNavigate();
 
@@ -457,13 +485,7 @@ const ActivityList: React.FC = () => {
     return (activities as Activity[])
       .filter((activity) => {
         if (sportTypeArg === 'all') return true;
-        if (sportTypeArg === 'running')
-          return activity.type === 'running' || activity.type === 'Run';
-        if (sportTypeArg === 'walking')
-          return activity.type === 'walking' || activity.type === 'Walk';
-        if (sportTypeArg === 'cycling')
-          return activity.type === 'cycling' || activity.type === 'Ride';
-        return activity.type === sportTypeArg;
+        return normalizeActivitySportType(activity.type) === sportTypeArg;
       })
       .reduce((acc: ActivityGroups, activity) => {
         const date = new Date(activity.start_date_local);
@@ -544,8 +566,8 @@ const ActivityList: React.FC = () => {
   }
 
   const activitiesByInterval = useMemo(
-    () => groupActivitiesFn(interval, sportType),
-    [interval, sportType]
+    () => groupActivitiesFn(interval, normalizedSportType),
+    [activities, interval, normalizedSportType]
   );
 
   const dataList = useMemo(
@@ -627,7 +649,7 @@ const ActivityList: React.FC = () => {
       cancelAnimationFrame(id);
       clearTimeout(t);
     };
-  }, [interval, sportType]);
+  }, [interval, normalizedSportType]);
 
   // compute list height = viewport height - filter container height
   useEffect(() => {
@@ -710,6 +732,9 @@ const ActivityList: React.FC = () => {
     itemsPerRow < 1
       ? '100%'
       : `${itemsPerRow * itemWidth + Math.max(0, itemsPerRow - 1) * gap}px`;
+  const shouldUseVirtualList = calcGroup.length > 8;
+  const isSportTypeDisabledInLife = (type: string) =>
+    interval === 'life' && type !== 'all';
 
   const loading = itemsPerRow < 1 || !rowHeight;
   const RunningSvg = useMemo(() => MonthOfLifeSvg('running', language), [language]);
@@ -727,14 +752,20 @@ const ActivityList: React.FC = () => {
           {labels.homePageTitle}
         </button>
         <select
+          className={interval === 'life' ? styles.filterSelectLife : undefined}
           onChange={(e) => setSportType(e.target.value)}
-          value={sportType}
+          value={normalizedSportType}
         >
           {sportTypeOptions.map((type) => (
             <option
+              className={
+                isSportTypeDisabledInLife(type)
+                  ? styles.filterOptionDisabled
+                  : undefined
+              }
               key={type}
               value={type}
-              disabled={interval === 'life' && type !== 'all'}
+              disabled={isSportTypeDisabledInLife(type)}
             >
               {labels.sportTypeLabels[type] ?? type}
             </option>
@@ -778,9 +809,7 @@ const ActivityList: React.FC = () => {
             ) : (
               // Show Life SVG when no year is selected
               <>
-                {(sportType === 'running' || sportType === 'Run') && (
-                  <RunningSvg />
-                )}
+                {sportType === 'running' && <RunningSvg />}
                 {sportType === 'walking' && <WalkingSvg />}
                 {sportType === 'hiking' && <HikingSvg />}
                 {sportType === 'cycling' && <CyclingSvg />}
@@ -863,61 +892,118 @@ const ActivityList: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <VirtualList
-                  key={`${sportType}-${interval}-${itemsPerRow}`}
-                  data={calcGroup}
-                  height={listHeight}
-                  itemHeight={rowHeight}
-                  itemKey={(row: RowGroup) => row[0]?.period ?? ''}
-                  styles={VIRTUAL_LIST_STYLES}
-                >
-                  {(row: RowGroup) => (
-                    <div
-                      ref={virtualListRef}
-                      className={styles.rowContainer}
-                      style={{ gap: `${gap}px` }}
-                    >
-                      {row.map(
-                        (cardData: {
-                          period: string;
-                          summary: ActivitySummary;
-                        }) => (
-                          <ActivityCard
-                            key={cardData.period}
-                            period={cardData.period}
-                            summary={{
-                              totalDistance: cardData.summary.totalDistance,
-                              averageSpeed: cardData.summary.totalTime
-                                ? cardData.summary.totalDistance /
-                                  (cardData.summary.totalTime / 3600)
-                                : 0,
-                              totalTime: cardData.summary.totalTime,
-                              count: cardData.summary.count,
-                              maxDistance: cardData.summary.maxDistance,
-                              maxSpeed: cardData.summary.maxSpeed,
-                              location: cardData.summary.location,
-                              totalElevationGain: SHOW_ELEVATION_GAIN
-                                ? cardData.summary.totalElevationGain
-                                : undefined,
-                              averageHeartRate:
-                                cardData.summary.heartRateCount > 0
-                                  ? cardData.summary.totalHeartRate /
-                                    cardData.summary.heartRateCount
-                                  : undefined,
-                            }}
-                            dailyDistances={cardData.summary.dailyDistances}
-                            interval={interval}
-                            activities={
-                              interval === 'day'
-                                ? cardData.summary.activities
-                                : undefined
-                            }
-                          />
-                        )
-                      )}
+                <>
+                  {dataList.length === 0 && (
+                    <div className={styles.emptyState}>{labels.noRouteData}</div>
+                  )}
+                  {dataList.length > 0 && !shouldUseVirtualList && (
+                    <div className={styles.staticList}>
+                      {calcGroup.map((row) => (
+                        <div
+                          key={row[0]?.period ?? 'row'}
+                          className={styles.rowContainer}
+                          style={{ gap: `${gap}px` }}
+                        >
+                          {row.map(
+                            (cardData: {
+                              period: string;
+                              summary: ActivitySummary;
+                            }) => (
+                              <ActivityCard
+                                key={cardData.period}
+                                period={cardData.period}
+                                summary={{
+                                  totalDistance: cardData.summary.totalDistance,
+                                  averageSpeed: cardData.summary.totalTime
+                                    ? cardData.summary.totalDistance /
+                                      (cardData.summary.totalTime / 3600)
+                                    : 0,
+                                  totalTime: cardData.summary.totalTime,
+                                  count: cardData.summary.count,
+                                  maxDistance: cardData.summary.maxDistance,
+                                  maxSpeed: cardData.summary.maxSpeed,
+                                  location: cardData.summary.location,
+                                  totalElevationGain: SHOW_ELEVATION_GAIN
+                                    ? cardData.summary.totalElevationGain
+                                    : undefined,
+                                  averageHeartRate:
+                                    cardData.summary.heartRateCount > 0
+                                      ? cardData.summary.totalHeartRate /
+                                        cardData.summary.heartRateCount
+                                      : undefined,
+                                }}
+                                dailyDistances={cardData.summary.dailyDistances}
+                                interval={interval}
+                                activities={
+                                  interval === 'day'
+                                    ? cardData.summary.activities
+                                    : undefined
+                                }
+                              />
+                            )
+                          )}
+                        </div>
+                      ))}
                     </div>
                   )}
-                </VirtualList>
+                  {dataList.length > 0 && shouldUseVirtualList && (
+                    <VirtualList
+                      key={`${sportType}-${interval}-${itemsPerRow}`}
+                      data={calcGroup}
+                      height={listHeight}
+                      itemHeight={rowHeight}
+                      itemKey={(row: RowGroup) => row[0]?.period ?? ''}
+                      styles={VIRTUAL_LIST_STYLES}
+                    >
+                      {(row: RowGroup) => (
+                        <div
+                          ref={virtualListRef}
+                          className={styles.rowContainer}
+                          style={{ gap: `${gap}px` }}
+                        >
+                          {row.map(
+                            (cardData: {
+                              period: string;
+                              summary: ActivitySummary;
+                            }) => (
+                              <ActivityCard
+                                key={cardData.period}
+                                period={cardData.period}
+                                summary={{
+                                  totalDistance: cardData.summary.totalDistance,
+                                  averageSpeed: cardData.summary.totalTime
+                                    ? cardData.summary.totalDistance /
+                                      (cardData.summary.totalTime / 3600)
+                                    : 0,
+                                  totalTime: cardData.summary.totalTime,
+                                  count: cardData.summary.count,
+                                  maxDistance: cardData.summary.maxDistance,
+                                  maxSpeed: cardData.summary.maxSpeed,
+                                  location: cardData.summary.location,
+                                  totalElevationGain: SHOW_ELEVATION_GAIN
+                                    ? cardData.summary.totalElevationGain
+                                    : undefined,
+                                  averageHeartRate:
+                                    cardData.summary.heartRateCount > 0
+                                      ? cardData.summary.totalHeartRate /
+                                        cardData.summary.heartRateCount
+                                      : undefined,
+                                }}
+                                dailyDistances={cardData.summary.dailyDistances}
+                                interval={interval}
+                                activities={
+                                  interval === 'day'
+                                    ? cardData.summary.activities
+                                    : undefined
+                                }
+                              />
+                            )
+                          )}
+                        </div>
+                      )}
+                    </VirtualList>
+                  )}
+                </>
               )}
             </div>
           </div>

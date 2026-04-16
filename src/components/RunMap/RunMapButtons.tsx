@@ -11,8 +11,8 @@ const RunMapButtons = ({
   thisYear: string;
 }) => {
   const labels = useLabels();
-  const { years } = useActivities();
-  const yearsButtons = years.slice();
+  const { allYears } = useActivities();
+  const yearsButtons = allYears.slice();
   yearsButtons.push(TOTAL_FILTER_KEY);
 
   return (

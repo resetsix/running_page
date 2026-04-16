@@ -259,11 +259,46 @@ const pathForRun = (run: Activity): Coordinate[] => {
   }
 };
 
+const normalizeActivitySportType = (type: string): string => {
+  const rawType = type.trim();
+  const normalized = rawType.toLowerCase().replace(/[\s_-]+/g, '');
+
+  if (normalized === 'run' || normalized === 'running' || normalized === 'virtualrun') {
+    return 'running';
+  }
+
+  if (normalized === 'ride' || normalized === 'cycling') {
+    return 'cycling';
+  }
+
+  if (normalized === 'walk' || normalized === 'walking') {
+    return 'walking';
+  }
+
+  if (normalized === 'hike' || normalized === 'hiking') {
+    return 'hiking';
+  }
+
+  if (normalized === 'swim' || normalized === 'swimming') {
+    return 'swimming';
+  }
+
+  if (normalized.includes('skiing') || normalized === 'ski') {
+    return 'skiing';
+  }
+
+  return rawType;
+};
+
 const colorForRun = (run: Activity): string => {
   const dynamicRunColor = getRuntimeRunColor();
+  const normalizedType = normalizeActivitySportType(run.type);
 
-  switch (run.type) {
-    case 'Run': {
+  switch (normalizedType) {
+    case 'running': {
+      if (run.type === 'VirtualRun') {
+        return INDOOR_COLOR;
+      }
       if (run.subtype === 'indoor' || run.subtype === 'treadmill') {
         return INDOOR_COLOR;
       }
@@ -275,16 +310,12 @@ const colorForRun = (run: Activity): string => {
       return dynamicRunColor;
     }
     case 'cycling':
-    case 'Ride': // For Strava
       return CYCLING_COLOR;
     case 'hiking':
-    case 'Hike': // For Strava
       return HIKING_COLOR;
     case 'walking':
-    case 'Walk': // For Strava
       return WALKING_COLOR;
     case 'swimming':
-    case 'Swim': // For Strava
       return SWIMMING_COLOR;
     default:
       return MAIN_COLOR;
@@ -326,9 +357,9 @@ const geoJsonForMap = async (): Promise<FeatureCollection<RPGeometry>> => {
 };
 
 const getActivitySportKey = (act: Activity): LocalizedRunTitleKey | '' => {
-  const lowerType = act.type.toLowerCase();
+  const normalizedType = normalizeActivitySportType(act.type);
 
-  if (act.type === 'Run') {
+  if (normalizedType === 'running') {
     if (act.subtype === 'generic') {
       const runDistance = act.distance / 1000;
       if (runDistance > 20 && runDistance < 40) {
@@ -351,23 +382,23 @@ const getActivitySportKey = (act: Activity): LocalizedRunTitleKey | '' => {
     return 'run_generic';
   }
 
-  if (lowerType === 'hiking') {
+  if (normalizedType === 'hiking') {
     return 'hiking';
   }
 
-  if (lowerType === 'cycling') {
+  if (normalizedType === 'cycling') {
     return 'cycling';
   }
 
-  if (lowerType === 'walking') {
+  if (normalizedType === 'walking') {
     return 'walking';
   }
 
-  if (lowerType === 'swimming' || lowerType === 'swim') {
+  if (normalizedType === 'swimming') {
     return 'swimming';
   }
 
-  if (lowerType.includes('skiing')) {
+  if (normalizedType === 'skiing') {
     return 'skiing';
   }
 
@@ -432,13 +463,18 @@ const getLocalizedRunTitle = (
 };
 
 const titleKeyForRun = (run: Activity): string => {
+  const activitySportKey = getActivitySportKey(run);
+
+  if (activitySportKey && activitySportKey !== 'run_generic') {
+    return activitySportKey;
+  }
+
   if (RICH_TITLE) {
     if (run.name !== '') {
       return `name:${run.name}`;
     }
 
     const { city } = locationForRun(run);
-    const activitySportKey = getActivitySportKey(run);
     if (city && city.length > 0 && activitySportKey.length > 0) {
       return `city:${city}|sport:${activitySportKey}`;
     }
@@ -685,4 +721,5 @@ export {
   getMapStyle,
   isTouchDevice,
   getMapTheme,
+  normalizeActivitySportType,
 };
