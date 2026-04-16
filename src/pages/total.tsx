@@ -2,6 +2,7 @@ import ActivityList from '@/components/ActivityList';
 import { Helmet } from 'react-helmet-async';
 import { useTheme } from '@/hooks/useTheme';
 import { useEffect } from 'react';
+import { HTML_LANG } from '@/utils/const';
 
 const HomePage = () => {
   // Use the theme hook to get the current theme
@@ -18,7 +19,7 @@ const HomePage = () => {
     <>
       <Helmet>
         {/* Set HTML attributes including theme */}
-        <html lang="en" data-theme={theme} />
+        <html lang={HTML_LANG} data-theme={theme} />
       </Helmet>
       <ActivityList />
     </>

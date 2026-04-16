@@ -1,3 +1,9 @@
+import {
+  NAV_SETUP_LABEL,
+  NAV_SOURCE_LABEL,
+  NAV_SUMMARY_LABEL,
+} from '@/utils/const';
+
 interface ISiteMetadataResult {
   siteTitle: string;
   siteUrl: string;
@@ -18,18 +24,18 @@ const data: ISiteMetadataResult = {
   siteTitle: 'Resetsix Running',
   siteUrl: '/',
   logo: `${getBasePath()}/images/favicon.png`,
-  description: 'Personal running page powered by Keep sync, GitHub Actions, and Netlify.',
+  description: '个人跑步记录页面，由 Keep、GitHub Actions 与 Netlify 提供支持。',
   navLinks: [
     {
-      name: 'Summary',
+      name: NAV_SUMMARY_LABEL,
       url: `${getBasePath()}/summary`,
     },
     {
-      name: 'Source',
+      name: NAV_SOURCE_LABEL,
       url: 'https://github.com/resetsix/running_page',
     },
     {
-      name: 'Setup',
+      name: NAV_SETUP_LABEL,
       url: 'https://github.com/resetsix/running_page/blob/master/docs/netlify-deployment.md',
     },
   ],

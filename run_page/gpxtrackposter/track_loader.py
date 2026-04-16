@@ -14,6 +14,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import concurrent.futures
 
 from generator.db import Activity, init_db
+from hidden_activity_dates import is_hidden_activity_date
 
 from .exceptions import ParameterError, TrackLoadError
 from .track import Track
@@ -107,6 +108,8 @@ class TrackLoader:
             activities = session.query(Activity).order_by(Activity.start_date_local)
         tracks = []
         for activity in activities:
+            if is_hidden_activity_date(activity.start_date_local):
+                continue
             t = Track()
             t.load_from_db(activity)
             tracks.append(t)

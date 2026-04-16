@@ -19,7 +19,12 @@ import {
 import VirtualList from 'rc-virtual-list';
 import { useNavigate } from 'react-router-dom';
 import styles from './style.module.css';
-import { ACTIVITY_TOTAL, LOADING_TEXT } from '@/utils/const';
+import {
+  ACTIVITY_TOTAL,
+  LIFE_LABEL,
+  LOADING_SVG_TEXT,
+  LOADING_TEXT,
+} from '@/utils/const';
 import { totalStat, yearSummaryStats } from '@assets/index';
 import { loadSvgComponent } from '@/utils/svgUtils';
 import { SHOW_ELEVATION_GAIN, HOME_PAGE_TITLE } from '@/utils/const';
@@ -721,7 +726,7 @@ const ActivityList: React.FC = () => {
           <option value="month">{ACTIVITY_TOTAL.MONTHLY_TITLE}</option>
           <option value="week">{ACTIVITY_TOTAL.WEEKLY_TITLE}</option>
           <option value="day">{ACTIVITY_TOTAL.DAILY_TITLE}</option>
-          <option value="life">Life</option>
+          <option value="life">{LIFE_LABEL}</option>
         </select>
       </div>
 
@@ -741,7 +746,7 @@ const ActivityList: React.FC = () => {
               </button>
             ))}
           </div>
-          <Suspense fallback={<div>Loading SVG...</div>}>
+          <Suspense fallback={<div>{LOADING_SVG_TEXT}</div>}>
             {selectedYear ? (
               // Show Year Summary SVG when a year is selected
               (() => {

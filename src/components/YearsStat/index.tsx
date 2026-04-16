@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import YearStat from '@/components/YearStat';
 import useActivities from '@/hooks/useActivities';
-import { INFO_MESSAGE } from '@/utils/const';
+import { INFO_MESSAGE, TOTAL_FILTER_KEY } from '@/utils/const';
 
 const YearsStat = ({
   year,
@@ -16,7 +16,7 @@ const YearsStat = ({
   const yearsArrayUpdate = useMemo(() => {
     // make sure the year click on front
     let updatedYears = years.slice();
-    updatedYears.push('Total');
+    updatedYears.push(TOTAL_FILTER_KEY);
     updatedYears = updatedYears.filter((x) => x !== year);
     updatedYears.unshift(year);
     return updatedYears;

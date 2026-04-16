@@ -5,7 +5,18 @@ import { formatPace } from '@/utils/utils';
 import useHover from '@/hooks/useHover';
 import { yearStats, githubYearStats } from '@assets/index';
 import { loadSvgComponent } from '@/utils/svgUtils';
-import { SHOW_ELEVATION_GAIN } from '@/utils/const';
+import {
+  SHOW_ELEVATION_GAIN,
+  AVG_PACE_LABEL,
+  AVERAGE_HEART_RATE_TITLE,
+  JOURNEY_LABEL,
+  RUNS_LABEL,
+  STREAK_LABEL,
+  STREAK_UNIT_LABEL,
+  TOTAL_ELEVATION_GAIN_TITLE,
+  TOTAL_FILTER_KEY,
+  TOTAL_LABEL,
+} from '@/utils/const';
 import { DIST_UNIT, M_TO_DIST, M_TO_ELEV } from '@/utils/utils';
 
 const YearStat = ({
@@ -62,23 +73,31 @@ const YearStat = ({
   const avgHeartRate = (heartRate / (runs.length - heartRateNullCount)).toFixed(
     0
   );
+  const displayYearLabel = year === TOTAL_FILTER_KEY ? TOTAL_LABEL : year;
+  const journeyDescription = year === TOTAL_FILTER_KEY ? '' : ` ${JOURNEY_LABEL}`;
   return (
     <div className="cursor-pointer" onClick={() => onClick(year)}>
       <section {...eventHandlers}>
-        <Stat value={year} description=" Journey" />
-        <Stat value={runs.length} description=" Runs" />
+        <Stat value={displayYearLabel} description={journeyDescription} />
+        <Stat value={runs.length} description={` ${RUNS_LABEL}`} />
         <Stat value={sumDistance} description={` ${DIST_UNIT}`} />
         {SHOW_ELEVATION_GAIN && (
-          <Stat value={sumElevationGainStr} description=" Elevation Gain" />
+          <Stat
+            value={sumElevationGainStr}
+            description={` ${TOTAL_ELEVATION_GAIN_TITLE}`}
+          />
         )}
-        <Stat value={avgPace} description=" Avg Pace" />
-        <Stat value={`${streak} day`} description=" Streak" />
+        <Stat value={avgPace} description={` ${AVG_PACE_LABEL}`} />
+        <Stat
+          value={`${streak} ${STREAK_UNIT_LABEL}`}
+          description={` ${STREAK_LABEL}`}
+        />
         {hasHeartRate && (
-          <Stat value={avgHeartRate} description=" Avg Heart Rate" />
+          <Stat value={avgHeartRate} description={` ${AVERAGE_HEART_RATE_TITLE}`} />
         )}
       </section>
-      {year !== 'Total' && hovered && (
-        <Suspense fallback="loading...">
+      {year !== TOTAL_FILTER_KEY && hovered && (
+        <Suspense fallback="加载中...">
           <YearSVG className="year-svg my-4 h-4/6 w-4/6 border-0 p-0" />
           <GithubYearSVG className="github-year-svg my-4 h-auto w-full border-0 p-0" />
         </Suspense>

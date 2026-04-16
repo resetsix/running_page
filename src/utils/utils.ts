@@ -19,6 +19,8 @@ import {
   RUN_TRAIL_COLOR,
   MAP_TILE_STYLES,
   MAP_TILE_STYLE_DARK,
+  NO_MAP_DATA_FOR_RUN,
+  TOTAL_FILTER_KEY,
 } from './const';
 import {
   FeatureCollection,
@@ -67,7 +69,7 @@ const titleForShow = (run: Activity): string => {
     name = run.name;
   }
   return `${name} ${date} ${distance} ${DIST_UNIT} ${
-    !run.summary_polyline ? '(No map data for this run)' : ''
+    !run.summary_polyline ? NO_MAP_DATA_FOR_RUN : ''
   }`;
 };
 
@@ -435,7 +437,7 @@ const filterAndSortRuns = (
   sortFunc: (_a: Activity, _b: Activity) => number
 ) => {
   let s = activities;
-  if (item !== 'Total') {
+  if (item !== TOTAL_FILTER_KEY) {
     s = activities.filter((run) => filterFunc(run, item));
   }
   return s.sort(sortFunc);

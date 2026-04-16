@@ -2,6 +2,8 @@ import YearStat from '@/components/YearStat';
 import {
   CHINESE_LOCATION_INFO_MESSAGE_FIRST,
   CHINESE_LOCATION_INFO_MESSAGE_SECOND,
+  CHINESE_LOCATION_INFO_MESSAGE_THIRD,
+  TOTAL_FILTER_KEY,
 } from '@/utils/const';
 import CitiesStat from './CitiesStat';
 import LocationSummary from './LocationSummary';
@@ -28,14 +30,14 @@ const LocationStat = ({
         .
         <br />
         <br />
-        Yesterday you said tomorrow.
+        {CHINESE_LOCATION_INFO_MESSAGE_THIRD}。
       </p>
     </section>
     <hr />
     <LocationSummary />
     <CitiesStat onClick={changeCity} />
     <PeriodStat onClick={changeTitle} />
-    <YearStat year="Total" onClick={changeYear} />
+    <YearStat year={TOTAL_FILTER_KEY} onClick={changeYear} />
   </div>
 );
 

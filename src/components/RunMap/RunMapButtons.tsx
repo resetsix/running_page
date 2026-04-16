@@ -1,4 +1,5 @@
 import useActivities from '@/hooks/useActivities';
+import { TOTAL_FILTER_KEY, TOTAL_LABEL } from '@/utils/const';
 import styles from './style.module.css';
 
 const RunMapButtons = ({
@@ -10,7 +11,7 @@ const RunMapButtons = ({
 }) => {
   const { years } = useActivities();
   const yearsButtons = years.slice();
-  yearsButtons.push('Total');
+  yearsButtons.push(TOTAL_FILTER_KEY);
 
   return (
     <ul className={styles.buttons}>
@@ -24,7 +25,7 @@ const RunMapButtons = ({
             changeYear(year);
           }}
         >
-          {year}
+          {year === TOTAL_FILTER_KEY ? TOTAL_LABEL : year}
         </li>
       ))}
     </ul>

@@ -10,7 +10,15 @@ import YearsStat from '@/components/YearsStat';
 import useActivities from '@/hooks/useActivities';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
 import { useInterval } from '@/hooks/useInterval';
-import { IS_CHINESE } from '@/utils/const';
+import {
+  CITY_FILTER_LABEL,
+  HTML_LANG,
+  IS_CHINESE,
+  PERIOD_FILTER_LABEL,
+  RUNNING_HEATMAP_LABEL,
+  TOTAL_FILTER_KEY,
+  YEAR_FILTER_LABEL,
+} from '@/utils/const';
 import {
   Activity,
   IViewState,
@@ -150,6 +158,19 @@ const Index = () => {
     [geoData]
   );
 
+  const getMapTitle = useCallback(
+    (item: string, filterLabel: string) => {
+      if (!IS_CHINESE) {
+        return `${item} ${filterLabel} ${RUNNING_HEATMAP_LABEL}`;
+      }
+      if (filterLabel === YEAR_FILTER_LABEL) {
+        return `${item} 年${RUNNING_HEATMAP_LABEL}`;
+      }
+      return `${item}${RUNNING_HEATMAP_LABEL}`;
+    },
+    []
+  );
+
   const changeByItem = useCallback(
     (
       item: string,
@@ -157,19 +178,19 @@ const Index = () => {
       func: (_run: Activity, _value: string) => boolean
     ) => {
       scrollToMap();
-      if (name != 'Year') {
+      if (name != YEAR_FILTER_LABEL) {
         setYear(thisYear);
       }
       setCurrentFilter({ item, func });
       setRunIndex(-1);
-      setTitle(`${item} ${name} Running Heatmap`);
+      setTitle(getMapTitle(item, name));
       // Reset single run state when changing filters
       setSingleRunId(null);
       if (window.location.hash) {
         window.history.pushState(null, '', window.location.pathname);
       }
     },
-    [thisYear]
+    [getMapTitle, thisYear]
   );
 
   const changeYear = useCallback(
@@ -183,7 +204,7 @@ const Index = () => {
         });
       }
 
-      changeByItem(y, 'Year', filterYearRuns);
+      changeByItem(y, YEAR_FILTER_LABEL, filterYearRuns);
       // Stop current animation
       setIsAnimating(false);
     },
@@ -192,14 +213,14 @@ const Index = () => {
 
   const changeCity = useCallback(
     (city: string) => {
-      changeByItem(city, 'City', filterCityRuns);
+      changeByItem(city, CITY_FILTER_LABEL, filterCityRuns);
     },
     [changeByItem]
   );
 
   const changeTitle = useCallback(
     (title: string) => {
-      changeByItem(title, 'Title', filterTitleRuns);
+      changeByItem(title, PERIOD_FILTER_LABEL, filterTitleRuns);
     },
     [changeByItem]
   );
@@ -328,7 +349,7 @@ const Index = () => {
   }, [runs, startAnimation, singleRunId]);
 
   useEffect(() => {
-    if (year !== 'Total') {
+    if (year !== TOTAL_FILTER_KEY) {
       return;
     }
 
@@ -391,7 +412,7 @@ const Index = () => {
   return (
     <Layout>
       <Helmet>
-        <html lang="en" data-theme={theme} />
+        <html lang={HTML_LANG} data-theme={theme} />
       </Helmet>
       <div className="w-full lg:w-1/3">
         <h1 className="my-12 mt-6 text-5xl font-extrabold italic">
@@ -417,7 +438,7 @@ const Index = () => {
           thisYear={year}
           animationTrigger={animationTrigger}
         />
-        {year === 'Total' ? (
+        {year === TOTAL_FILTER_KEY ? (
           <SVGStat />
         ) : (
           <RunTable

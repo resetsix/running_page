@@ -2,6 +2,10 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
 import { useTheme, Theme } from '@/hooks/useTheme';
+import {
+  SWITCH_TO_DARK_THEME_LABEL,
+  SWITCH_TO_LIGHT_THEME_LABEL,
+} from '@/utils/const';
 import styles from './style.module.css';
 
 const Header = () => {
@@ -59,6 +63,10 @@ const Header = () => {
   };
 
   const currentIcon = icons[currentIconIndex];
+  const nextThemeLabel =
+    currentIcon.id === 'dark'
+      ? SWITCH_TO_DARK_THEME_LABEL
+      : SWITCH_TO_LIGHT_THEME_LABEL;
 
   return (
     <>
@@ -85,8 +93,8 @@ const Header = () => {
               type="button"
               onClick={handleToggle}
               className={`${styles.themeButton} ${styles.themeButtonActive}`}
-              aria-label={`Switch to ${currentIcon.id} theme`}
-              title={`Switch to ${currentIcon.id} theme`}
+              aria-label={nextThemeLabel}
+              title={nextThemeLabel}
             >
               <div className={styles.iconWrapper}>{currentIcon.svg}</div>
             </button>

@@ -9,6 +9,7 @@ import stravalib
 from gpxtrackposter import track_loader
 from sqlalchemy import func
 
+from hidden_activity_dates import is_hidden_activity_date
 from polyline_processor import filter_out
 from synced_data_file_logger import save_synced_data_file_list
 
@@ -244,6 +245,8 @@ class Generator:
         streak = 0
         last_date = None
         for activity in activities:
+            if is_hidden_activity_date(activity.start_date_local):
+                continue
             # Determine running streak.
             date = datetime.datetime.strptime(
                 activity.start_date_local, "%Y-%m-%d %H:%M:%S"  # type: ignore

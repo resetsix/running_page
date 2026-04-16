@@ -53,19 +53,58 @@ const RICH_TITLE = false;
 // IF you are outside China please make sure IS_CHINESE = false
 const IS_CHINESE = true;
 const USE_ANIMATION_FOR_GRID = false;
+const TOTAL_FILTER_KEY = 'Total';
 const CHINESE_INFO_MESSAGE = (yearLength: number, year: string): string => {
-  const yearStr = year === 'Total' ? '所有' : ` ${year} `;
-  return `记录自己跑步 ${yearLength} 年了，下面列表展示的是${yearStr}的数据`;
+  if (year === TOTAL_FILTER_KEY) {
+    return `记录自己跑步 ${yearLength} 年了，下面列表展示的是总览数据`;
+  }
+  return `记录自己跑步 ${yearLength} 年了，下面列表展示的是 ${year} 年的数据`;
 };
 const ENGLISH_INFO_MESSAGE = (yearLength: number, year: string): string =>
-  `Running Journey with ${yearLength} Years, the table shows year ${year} data`;
+  year === TOTAL_FILTER_KEY
+    ? `Running Journey with ${yearLength} Years, the table shows overview data`
+    : `Running Journey with ${yearLength} Years, the table shows year ${year} data`;
 
 // English is not supported for location info messages yet
 const CHINESE_LOCATION_INFO_MESSAGE_FIRST =
   '跑过了一些地方，希望随着时间推移，点亮的地方越来越多';
 const CHINESE_LOCATION_INFO_MESSAGE_SECOND = '不要停下来，不要停下奔跑的脚步';
+const CHINESE_LOCATION_INFO_MESSAGE_THIRD = '别再说明天，就从今天开始';
 
 const INFO_MESSAGE = IS_CHINESE ? CHINESE_INFO_MESSAGE : ENGLISH_INFO_MESSAGE;
+const HTML_LANG = IS_CHINESE ? 'zh-CN' : 'en';
+const META_KEYWORDS = IS_CHINESE
+  ? '跑步, running, 热力图, 运动数据, 地图'
+  : 'running, heatmap, activity data, map';
+const TOTAL_LABEL = IS_CHINESE ? '总览' : 'Total';
+const LIFE_LABEL = IS_CHINESE ? '生涯' : 'Life';
+const YEAR_FILTER_LABEL = IS_CHINESE ? '年份' : 'Year';
+const CITY_FILTER_LABEL = IS_CHINESE ? '城市' : 'City';
+const PERIOD_FILTER_LABEL = IS_CHINESE ? '时段' : 'Title';
+const RUNNING_HEATMAP_LABEL = IS_CHINESE ? '跑步热力图' : 'Running Heatmap';
+const JOURNEY_LABEL = IS_CHINESE ? '年度' : 'Journey';
+const RUNS_LABEL = IS_CHINESE ? '次跑步' : 'Runs';
+const AVG_PACE_LABEL = IS_CHINESE ? '平均配速' : 'Avg Pace';
+const STREAK_LABEL = IS_CHINESE ? '连跑' : 'Streak';
+const STREAK_UNIT_LABEL = IS_CHINESE ? '天' : 'day';
+const RUN_OCCURRENCES_LABEL = IS_CHINESE ? '次' : 'Runs';
+const NAV_SUMMARY_LABEL = IS_CHINESE ? '总览' : 'Summary';
+const NAV_SOURCE_LABEL = IS_CHINESE ? '源码' : 'Source';
+const NAV_SETUP_LABEL = IS_CHINESE ? '部署' : 'Setup';
+const TABLE_ELEVATION_LABEL = IS_CHINESE ? '爬升' : 'Elev';
+const TABLE_PACE_LABEL = IS_CHINESE ? '配速' : 'Pace';
+const TABLE_TIME_LABEL = IS_CHINESE ? '时间' : 'Time';
+const TABLE_DATE_LABEL = IS_CHINESE ? '日期' : 'Date';
+const LOADING_SVG_TEXT = IS_CHINESE ? '正在加载图表...' : 'Loading SVG...';
+const NO_MAP_DATA_FOR_RUN = IS_CHINESE
+  ? '(该条记录暂无路线数据)'
+  : '(No map data for this run)';
+const SWITCH_TO_DARK_THEME_LABEL = IS_CHINESE
+  ? '切换到深色主题'
+  : 'Switch to dark theme';
+const SWITCH_TO_LIGHT_THEME_LABEL = IS_CHINESE
+  ? '切换到浅色主题'
+  : 'Switch to light theme';
 const FULL_MARATHON_RUN_TITLE = IS_CHINESE ? '全程马拉松' : 'Full Marathon';
 const HALF_MARATHON_RUN_TITLE = IS_CHINESE ? '半程马拉松' : 'Half Marathon';
 const MORNING_RUN_TITLE = IS_CHINESE ? '清晨跑步' : 'Morning Run';
@@ -93,31 +132,16 @@ const TOTAL_ELEVATION_GAIN_TITLE = IS_CHINESE
   ? '总海拔爬升'
   : 'Total Elevation Gain';
 const AVERAGE_HEART_RATE_TITLE = IS_CHINESE ? '平均心率' : 'Average Heart Rate';
-const YEARLY_TITLE = IS_CHINESE ? 'Year' : 'Yearly';
-const MONTHLY_TITLE = IS_CHINESE ? 'Month' : 'Monthly';
-const WEEKLY_TITLE = IS_CHINESE ? 'Week' : 'Weekly';
-const DAILY_TITLE = IS_CHINESE ? 'Day' : 'Daily';
-const LOCATION_TITLE = IS_CHINESE ? 'Location' : 'Location';
-const HOME_PAGE_TITLE = IS_CHINESE ? '首页' : 'Home';
+const YEARLY_TITLE = IS_CHINESE ? '年' : 'Yearly';
+const MONTHLY_TITLE = IS_CHINESE ? '月' : 'Monthly';
+const WEEKLY_TITLE = IS_CHINESE ? '周' : 'Weekly';
+const DAILY_TITLE = IS_CHINESE ? '日' : 'Daily';
+const LOCATION_TITLE = IS_CHINESE ? '地点' : 'Location';
+const HOME_PAGE_TITLE = IS_CHINESE ? '总览' : 'Home';
 
 const LOADING_TEXT = IS_CHINESE ? '加载中...' : 'Loading...';
 const NO_ROUTE_DATA = IS_CHINESE ? '暂无路线数据' : 'No route data';
 const INVALID_ROUTE_DATA = IS_CHINESE ? '路线数据无效' : 'Invalid route data';
-
-// Hide activities on specific local dates in the UI without changing source data.
-// Format: YYYY-MM-DD
-const HIDDEN_ACTIVITY_DATES = [
-  '2025-09-27',
-  '2023-11-22',
-  '2023-10-05',
-  '2023-10-02',
-  '2023-08-27',
-  '2023-03-15',
-  '2022-06-11',
-  '2022-06-10',
-  '2022-06-09',
-  '2022-06-08',
-];
 
 const ACTIVITY_TYPES = {
   RUN_GENERIC_TITLE,
@@ -162,12 +186,39 @@ export {
   GOOGLE_ANALYTICS_TRACKING_ID,
   CHINESE_LOCATION_INFO_MESSAGE_FIRST,
   CHINESE_LOCATION_INFO_MESSAGE_SECOND,
+  CHINESE_LOCATION_INFO_MESSAGE_THIRD,
   MAPBOX_TOKEN,
   MUNICIPALITY_CITIES_ARR,
   MAP_LAYER_LIST,
   IS_CHINESE,
   ROAD_LABEL_DISPLAY,
   INFO_MESSAGE,
+  HTML_LANG,
+  META_KEYWORDS,
+  TOTAL_FILTER_KEY,
+  TOTAL_LABEL,
+  LIFE_LABEL,
+  YEAR_FILTER_LABEL,
+  CITY_FILTER_LABEL,
+  PERIOD_FILTER_LABEL,
+  RUNNING_HEATMAP_LABEL,
+  JOURNEY_LABEL,
+  RUNS_LABEL,
+  AVG_PACE_LABEL,
+  STREAK_LABEL,
+  STREAK_UNIT_LABEL,
+  RUN_OCCURRENCES_LABEL,
+  NAV_SUMMARY_LABEL,
+  NAV_SOURCE_LABEL,
+  NAV_SETUP_LABEL,
+  TABLE_ELEVATION_LABEL,
+  TABLE_PACE_LABEL,
+  TABLE_TIME_LABEL,
+  TABLE_DATE_LABEL,
+  LOADING_SVG_TEXT,
+  NO_MAP_DATA_FOR_RUN,
+  SWITCH_TO_DARK_THEME_LABEL,
+  SWITCH_TO_LIGHT_THEME_LABEL,
   RUN_TITLES,
   USE_ANIMATION_FOR_GRID,
   USE_DASH_LINE,
@@ -179,11 +230,12 @@ export {
   RICH_TITLE,
   ACTIVITY_TYPES,
   ACTIVITY_TOTAL,
+  TOTAL_ELEVATION_GAIN_TITLE,
+  AVERAGE_HEART_RATE_TITLE,
   HOME_PAGE_TITLE,
   LOADING_TEXT,
   NO_ROUTE_DATA,
   INVALID_ROUTE_DATA,
-  HIDDEN_ACTIVITY_DATES,
 };
 
 const nike = 'rgb(224,237,94)'; // if you want to change the main color, modify this value in src/styles/variables.scss

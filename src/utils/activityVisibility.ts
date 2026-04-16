@@ -1,9 +1,9 @@
 import rawActivities from '@/static/activities.json';
-import { HIDDEN_ACTIVITY_DATES } from '@/utils/const';
+import hiddenActivityDates from '@/static/hidden-activity-dates.json';
 import type { Activity } from '@/utils/utils';
 
 const hiddenActivityDateSet = new Set(
-  HIDDEN_ACTIVITY_DATES.map((date) => date.trim()).filter(Boolean)
+  hiddenActivityDates.map((date) => date.trim()).filter(Boolean)
 );
 
 const getActivityLocalDate = (activity: Pick<Activity, 'start_date_local'>) =>

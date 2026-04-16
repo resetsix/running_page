@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo } from 'react';
 import { yearSummaryStats } from '@assets/index';
 import { loadSvgComponent } from '@/utils/svgUtils';
+import { LOADING_TEXT } from '@/utils/const';
 import styles from './style.module.css';
 
 interface YearSummaryModalProps {
@@ -43,7 +44,7 @@ const YearSummaryModal = ({ year, onClose }: YearSummaryModalProps) => {
         <button className={styles.closeButton} onClick={onClose}>
           ×
         </button>
-        <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
+        <Suspense fallback={<div className={styles.loading}>{LOADING_TEXT}</div>}>
           <YearSummarySVG className={styles.svg} />
         </Suspense>
       </div>
