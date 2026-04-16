@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import useLabels from '@/hooks/useLabels';
+import { getSiteAssetPath } from '@/utils/sitePaths';
 
 interface ISiteMetadataResult {
   siteTitle: string;
@@ -12,11 +13,6 @@ interface ISiteMetadataResult {
   }[];
 }
 
-const getBasePath = () => {
-  const baseUrl = import.meta.env.BASE_URL;
-  return baseUrl === '/' ? '' : baseUrl;
-};
-
 const useSiteMetadata = (): ISiteMetadataResult => {
   const labels = useLabels();
 
@@ -24,12 +20,12 @@ const useSiteMetadata = (): ISiteMetadataResult => {
     () => ({
       siteTitle: 'Resetsix Running',
       siteUrl: '/',
-      logo: `${getBasePath()}/images/favicon.png`,
+      logo: getSiteAssetPath('images/favicon.png'),
       description: labels.siteDescription,
       navLinks: [
         {
           name: labels.navSummaryLabel,
-          url: `${getBasePath()}/summary`,
+          url: getSiteAssetPath('summary'),
         },
       ],
     }),

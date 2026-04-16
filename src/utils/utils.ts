@@ -7,8 +7,6 @@ import {
   MAIN_COLOR,
   MUNICIPALITY_CITIES_ARR,
   NEED_FIX_MAP,
-  RUN_TITLES,
-  ACTIVITY_TYPES,
   RICH_TITLE,
   CYCLING_COLOR,
   HIKING_COLOR,
@@ -22,6 +20,7 @@ import {
   NO_MAP_DATA_FOR_RUN,
   TOTAL_FILTER_KEY,
 } from './const';
+import type { UIText } from './const';
 import {
   FeatureCollection,
   LineString,
@@ -57,6 +56,25 @@ export interface Activity {
   average_speed: number;
   streak: number;
 }
+
+type LocalizedRunTitleKey =
+  | 'full_marathon'
+  | 'half_marathon'
+  | 'morning_run'
+  | 'midday_run'
+  | 'afternoon_run'
+  | 'evening_run'
+  | 'night_run'
+  | 'run_generic'
+  | 'run_trail'
+  | 'run_treadmill'
+  | 'hiking'
+  | 'cycling'
+  | 'walking'
+  | 'swimming'
+  | 'skiing';
+
+type RunTitleLabels = Pick<UIText, 'runTitles' | 'activityTypes'>;
 
 const titleForShow = (run: Activity): string => {
   const date = run.start_date_local.slice(0, 11);
@@ -307,69 +325,150 @@ const geoJsonForMap = async (): Promise<FeatureCollection<RPGeometry>> => {
   };
 };
 
-const getActivitySport = (act: Activity): string => {
+const getActivitySportKey = (act: Activity): LocalizedRunTitleKey | '' => {
+  const lowerType = act.type.toLowerCase();
+
   if (act.type === 'Run') {
     if (act.subtype === 'generic') {
       const runDistance = act.distance / 1000;
       if (runDistance > 20 && runDistance < 40) {
-        return RUN_TITLES.HALF_MARATHON_RUN_TITLE;
-      } else if (runDistance >= 40) {
-        return RUN_TITLES.FULL_MARATHON_RUN_TITLE;
+        return 'half_marathon';
       }
-      return ACTIVITY_TYPES.RUN_GENERIC_TITLE;
-    } else if (act.subtype === 'trail') return ACTIVITY_TYPES.RUN_TRAIL_TITLE;
-    else if (act.subtype === 'treadmill')
-      return ACTIVITY_TYPES.RUN_TREADMILL_TITLE;
-    else return ACTIVITY_TYPES.RUN_GENERIC_TITLE;
-  } else if (act.type === 'hiking') {
-    return ACTIVITY_TYPES.HIKING_TITLE;
-  } else if (act.type === 'cycling') {
-    return ACTIVITY_TYPES.CYCLING_TITLE;
-  } else if (act.type === 'walking') {
-    return ACTIVITY_TYPES.WALKING_TITLE;
+      if (runDistance >= 40) {
+        return 'full_marathon';
+      }
+      return 'run_generic';
+    }
+
+    if (act.subtype === 'trail') {
+      return 'run_trail';
+    }
+
+    if (act.subtype === 'treadmill') {
+      return 'run_treadmill';
+    }
+
+    return 'run_generic';
   }
-  // if act.type contains 'skiing'
-  else if (act.type.includes('skiing')) {
-    return ACTIVITY_TYPES.SKIING_TITLE;
+
+  if (lowerType === 'hiking') {
+    return 'hiking';
   }
+
+  if (lowerType === 'cycling') {
+    return 'cycling';
+  }
+
+  if (lowerType === 'walking') {
+    return 'walking';
+  }
+
+  if (lowerType === 'swimming' || lowerType === 'swim') {
+    return 'swimming';
+  }
+
+  if (lowerType.includes('skiing')) {
+    return 'skiing';
+  }
+
   return '';
 };
 
-const titleForRun = (run: Activity): string => {
-  if (RICH_TITLE) {
-    // 1. try to use user defined name
-    if (run.name != '') {
-      return run.name;
+const getLocalizedRunTitle = (
+  titleKey: string,
+  labels: RunTitleLabels
+): string => {
+  if (titleKey.startsWith('name:')) {
+    return titleKey.slice('name:'.length);
+  }
+
+  if (titleKey.startsWith('city:')) {
+    const sportMarker = '|sport:';
+    const markerIndex = titleKey.indexOf(sportMarker);
+    if (markerIndex === -1) {
+      return titleKey.slice('city:'.length);
     }
-    // 2. try to use location+type if the location is available, eg. 'Shanghai Run'
+
+    const city = titleKey.slice('city:'.length, markerIndex);
+    const sportKey = titleKey.slice(markerIndex + sportMarker.length);
+    const sportTitle = getLocalizedRunTitle(sportKey, labels);
+    return `${city} ${sportTitle}`.trim();
+  }
+
+  switch (titleKey) {
+    case 'full_marathon':
+      return labels.runTitles.FULL_MARATHON_RUN_TITLE;
+    case 'half_marathon':
+      return labels.runTitles.HALF_MARATHON_RUN_TITLE;
+    case 'morning_run':
+      return labels.runTitles.MORNING_RUN_TITLE;
+    case 'midday_run':
+      return labels.runTitles.MIDDAY_RUN_TITLE;
+    case 'afternoon_run':
+      return labels.runTitles.AFTERNOON_RUN_TITLE;
+    case 'evening_run':
+      return labels.runTitles.EVENING_RUN_TITLE;
+    case 'night_run':
+      return labels.runTitles.NIGHT_RUN_TITLE;
+    case 'run_generic':
+      return labels.activityTypes.RUN_GENERIC_TITLE;
+    case 'run_trail':
+      return labels.activityTypes.RUN_TRAIL_TITLE;
+    case 'run_treadmill':
+      return labels.activityTypes.RUN_TREADMILL_TITLE;
+    case 'hiking':
+      return labels.activityTypes.HIKING_TITLE;
+    case 'cycling':
+      return labels.activityTypes.CYCLING_TITLE;
+    case 'walking':
+      return labels.activityTypes.WALKING_TITLE;
+    case 'swimming':
+      return labels.activityTypes.SWIMMING_TITLE;
+    case 'skiing':
+      return labels.activityTypes.SKIING_TITLE;
+    default:
+      return titleKey;
+  }
+};
+
+const titleKeyForRun = (run: Activity): string => {
+  if (RICH_TITLE) {
+    if (run.name !== '') {
+      return `name:${run.name}`;
+    }
+
     const { city } = locationForRun(run);
-    const activity_sport = getActivitySport(run);
-    if (city && city.length > 0 && activity_sport.length > 0) {
-      return `${city} ${activity_sport}`;
+    const activitySportKey = getActivitySportKey(run);
+    if (city && city.length > 0 && activitySportKey.length > 0) {
+      return `city:${city}|sport:${activitySportKey}`;
     }
   }
-  // 3. use time+length if location or type is not available
+
   const runDistance = run.distance / 1000;
   const runHour = +run.start_date_local.slice(11, 13);
   if (runDistance > 20 && runDistance < 40) {
-    return RUN_TITLES.HALF_MARATHON_RUN_TITLE;
+    return 'half_marathon';
   }
   if (runDistance >= 40) {
-    return RUN_TITLES.FULL_MARATHON_RUN_TITLE;
+    return 'full_marathon';
   }
   if (runHour >= 0 && runHour <= 10) {
-    return RUN_TITLES.MORNING_RUN_TITLE;
+    return 'morning_run';
   }
   if (runHour > 10 && runHour <= 14) {
-    return RUN_TITLES.MIDDAY_RUN_TITLE;
+    return 'midday_run';
   }
   if (runHour > 14 && runHour <= 18) {
-    return RUN_TITLES.AFTERNOON_RUN_TITLE;
+    return 'afternoon_run';
   }
   if (runHour > 18 && runHour <= 21) {
-    return RUN_TITLES.EVENING_RUN_TITLE;
+    return 'evening_run';
   }
-  return RUN_TITLES.NIGHT_RUN_TITLE;
+  return 'night_run';
+};
+
+const titleForRun = (run: Activity, labels: RunTitleLabels): string => {
+  return getLocalizedRunTitle(titleKeyForRun(run), labels);
 };
 
 export interface IViewState {
@@ -488,7 +587,7 @@ const filterCityRuns = (run: Activity, city: string) => {
   return false;
 };
 const filterTitleRuns = (run: Activity, title: string) =>
-  titleForRun(run) === title;
+  titleKeyForRun(run) === title;
 
 const filterAndSortRuns = (
   activities: Activity[],
@@ -569,7 +668,9 @@ export {
   pathForRun,
   geoJsonForRuns,
   geoJsonForMap,
+  getLocalizedRunTitle,
   titleForRun,
+  titleKeyForRun,
   filterYearRuns,
   filterCityRuns,
   filterTitleRuns,

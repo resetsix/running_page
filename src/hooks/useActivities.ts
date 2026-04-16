@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { locationForRun, titleForRun } from '@/utils/utils';
+import { locationForRun, titleKeyForRun } from '@/utils/utils';
 import { COUNTRY_STANDARDIZATION } from '@/static/city';
 import { visibleActivities } from '@/utils/activityVisibility';
 
@@ -23,10 +23,10 @@ const useActivities = () => {
     visibleActivities.forEach((run) => {
       const location = locationForRun(run);
 
-      const periodName = titleForRun(run);
-      if (periodName) {
-        runPeriod[periodName] = runPeriod[periodName]
-          ? runPeriod[periodName] + 1
+      const periodKey = titleKeyForRun(run);
+      if (periodKey) {
+        runPeriod[periodKey] = runPeriod[periodKey]
+          ? runPeriod[periodKey] + 1
           : 1;
       }
 

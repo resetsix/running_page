@@ -2,6 +2,7 @@ import {
   NAV_SUMMARY_LABEL,
   SITE_DESCRIPTION,
 } from '@/utils/const';
+import { getSiteAssetPath } from '@/utils/sitePaths';
 
 interface ISiteMetadataResult {
   siteTitle: string;
@@ -14,20 +15,15 @@ interface ISiteMetadataResult {
   }[];
 }
 
-const getBasePath = () => {
-  const baseUrl = import.meta.env.BASE_URL;
-  return baseUrl === '/' ? '' : baseUrl;
-};
-
 const data: ISiteMetadataResult = {
   siteTitle: 'Resetsix Running',
   siteUrl: '/',
-  logo: `${getBasePath()}/images/favicon.png`,
+  logo: getSiteAssetPath('images/favicon.png'),
   description: SITE_DESCRIPTION,
   navLinks: [
     {
       name: NAV_SUMMARY_LABEL,
-      url: `${getBasePath()}/summary`,
+      url: getSiteAssetPath('summary'),
     },
   ],
 };

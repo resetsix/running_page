@@ -1,6 +1,7 @@
 import Stat from '@/components/Stat';
 import useActivities from '@/hooks/useActivities';
 import useLabels from '@/hooks/useLabels';
+import { getLocalizedRunTitle } from '@/utils/utils';
 
 const PeriodStat = ({ onClick }: { onClick: (_period: string) => void }) => {
   const labels = useLabels();
@@ -14,7 +15,7 @@ const PeriodStat = ({ onClick }: { onClick: (_period: string) => void }) => {
         {periodArr.map(([period, times]) => (
           <Stat
             key={period}
-            value={period}
+            value={getLocalizedRunTitle(period, labels)}
             description={` ${times} ${labels.runOccurrencesLabel}`}
             citySize={3}
             onClick={() => onClick(period)}

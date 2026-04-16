@@ -50,6 +50,29 @@ type MapInstance = ReturnType<MapRef['getMap']>;
 type MapStyleDataEvent = {
   dataType?: string;
 };
+type MapStyleSource = {
+  url?: string;
+};
+type MapStyleWithSources = {
+  sources?: Record<string, MapStyleSource>;
+};
+
+const supportsMapboxLanguageStyle = (
+  style?: MapStyleWithSources | null
+): boolean => {
+  if (!style?.sources) {
+    return false;
+  }
+
+  return Object.values(style.sources).some((source) => {
+    const url = source.url;
+    return Boolean(
+      url &&
+        (url.includes('mapbox.mapbox-streets-v8') ||
+          /mapbox-streets-v[1-9][1-9]/.test(url))
+    );
+  });
+};
 
 interface IRunMapProps {
   title: string;
@@ -81,6 +104,8 @@ const RunMap = ({
     useState<FeatureCollection<RPGeometry> | null>(null);
   const [isLoadingMapData, setIsLoadingMapData] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const mapboxLanguageControlRef = useRef<MapboxLanguage | null>(null);
+  const hasWarnedMapboxLanguageRef = useRef(false);
 
   // Use the map theme hook to get the current map theme
   const currentMapTheme = useMapTheme();
@@ -246,8 +271,31 @@ const RunMap = ({
     (ref: MapRef) => {
       if (ref !== null) {
         const map = ref.getMap();
-        if (map && isChinese) {
-          map.addControl(new MapboxLanguage({ defaultLanguage: 'zh-Hans' }));
+        if (
+          map &&
+          isChinese &&
+          mapboxLanguageControlRef.current === null
+        ) {
+          if (
+            MAP_TILE_VENDOR === 'mapbox' &&
+            supportsMapboxLanguageStyle(
+              map.getStyle() as MapStyleWithSources | undefined
+            )
+          ) {
+            const languageControl = new MapboxLanguage({
+              defaultLanguage: 'zh-Hans',
+            });
+            map.addControl(languageControl);
+            mapboxLanguageControlRef.current = languageControl;
+          } else if (
+            import.meta.env.DEV &&
+            !hasWarnedMapboxLanguageRef.current
+          ) {
+            console.info(
+              'Skipping MapboxLanguage because the current map style is not compatible with Mapbox Streets language fields.'
+            );
+            hasWarnedMapboxLanguageRef.current = true;
+          }
         }
         // all style resources have been downloaded
         // and the first visually complete rendering of the base style has occurred.

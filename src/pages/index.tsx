@@ -20,6 +20,7 @@ import {
   filterYearRuns,
   geoJsonForRuns,
   getBoundsForGeoData,
+  getLocalizedRunTitle,
   scrollToMap,
   sortDateFunc,
   titleForShow,
@@ -417,13 +418,20 @@ const Index = () => {
     labels.yearFilterLabel,
   ]);
 
+  const currentFilterDisplayItem = useMemo(() => {
+    if (currentFilter.type === 'period') {
+      return getLocalizedRunTitle(currentFilter.item, labels);
+    }
+    return currentFilter.item;
+  }, [currentFilter.item, currentFilter.type, labels]);
+
   const title = useMemo(() => {
     if (showFilterTitle) {
-      return getMapTitle(currentFilter.item, currentFilterLabel);
+      return getMapTitle(currentFilterDisplayItem, currentFilterLabel);
     }
     return customTitle;
   }, [
-    currentFilter.item,
+    currentFilterDisplayItem,
     currentFilterLabel,
     customTitle,
     getMapTitle,

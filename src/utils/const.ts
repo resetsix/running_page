@@ -277,6 +277,8 @@ const getUIText = (language: Language) => {
   };
 };
 
+export type UIText = ReturnType<typeof getUIText>;
+
 const UI_TEXT = getUIText(CURRENT_LANGUAGE);
 const IS_CHINESE = UI_TEXT.isChinese;
 const INFO_MESSAGE = UI_TEXT.infoMessage;
@@ -469,9 +471,17 @@ export const WALKING_COLOR = HIKING_COLOR;
 export const SWIMMING_COLOR = 'rgb(255,51,51)';
 export const INDOOR_COLOR = '#8899aa';
 
+export type MapTileVendor =
+  | 'mapcn'
+  | 'mapcn_openfreemap'
+  | 'mapcn_maptiler_free'
+  | 'maptiler'
+  | 'stadiamaps'
+  | 'mapbox';
+
 // map tiles vendor, maptiler or mapbox or stadiamaps
 // if you want to use maptiler, set the access token in MAP_TILE_ACCESS_TOKEN
-export const MAP_TILE_VENDOR = 'mapcn';
+export const MAP_TILE_VENDOR: MapTileVendor = 'mapcn';
 
 // map tiles style name, see MAP_TILE_STYLES for more details
 export const MAP_TILE_STYLE_LIGHT = 'osm-bright';
