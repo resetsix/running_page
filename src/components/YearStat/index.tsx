@@ -1,22 +1,14 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import Stat from '@/components/Stat';
 import useActivities from '@/hooks/useActivities';
+import { useLanguage } from '@/hooks/useLanguage';
+import useLabels from '@/hooks/useLabels';
 import { formatPace } from '@/utils/utils';
 import useHover from '@/hooks/useHover';
 import { yearStats, githubYearStats } from '@assets/index';
+import { getLocalizedSvgPath } from '@/utils/language';
 import { loadSvgComponent } from '@/utils/svgUtils';
-import {
-  SHOW_ELEVATION_GAIN,
-  AVG_PACE_LABEL,
-  AVERAGE_HEART_RATE_TITLE,
-  JOURNEY_LABEL,
-  RUNS_LABEL,
-  STREAK_LABEL,
-  STREAK_UNIT_LABEL,
-  TOTAL_ELEVATION_GAIN_TITLE,
-  TOTAL_FILTER_KEY,
-  TOTAL_LABEL,
-} from '@/utils/const';
+import { SHOW_ELEVATION_GAIN, TOTAL_FILTER_KEY } from '@/utils/const';
 import { DIST_UNIT, M_TO_DIST, M_TO_ELEV } from '@/utils/utils';
 
 const YearStat = ({
@@ -27,12 +19,24 @@ const YearStat = ({
   onClick: (_year: string) => void;
 }) => {
   let { activities: runs, years } = useActivities();
+  const { language } = useLanguage();
+  const labels = useLabels();
   // for hover
   const [hovered, eventHandlers] = useHover();
   // lazy Component
-  const YearSVG = lazy(() => loadSvgComponent(yearStats, `./year_${year}.svg`));
-  const GithubYearSVG = lazy(() =>
-    loadSvgComponent(githubYearStats, `./github_${year}.svg`)
+  const YearSVG = useMemo(
+    () => lazy(() => loadSvgComponent(yearStats, `./year_${year}.svg`)),
+    [year]
+  );
+  const GithubYearSVG = useMemo(
+    () =>
+      lazy(() =>
+        loadSvgComponent(
+          githubYearStats,
+          getLocalizedSvgPath(`./github_${year}.svg`, language)
+        )
+      ),
+    [language, year]
   );
 
   if (years.includes(year)) {
@@ -73,31 +77,35 @@ const YearStat = ({
   const avgHeartRate = (heartRate / (runs.length - heartRateNullCount)).toFixed(
     0
   );
-  const displayYearLabel = year === TOTAL_FILTER_KEY ? TOTAL_LABEL : year;
-  const journeyDescription = year === TOTAL_FILTER_KEY ? '' : ` ${JOURNEY_LABEL}`;
+  const displayYearLabel = year === TOTAL_FILTER_KEY ? labels.totalLabel : year;
+  const journeyDescription =
+    year === TOTAL_FILTER_KEY ? '' : ` ${labels.journeyLabel}`;
   return (
     <div className="cursor-pointer" onClick={() => onClick(year)}>
       <section {...eventHandlers}>
         <Stat value={displayYearLabel} description={journeyDescription} />
-        <Stat value={runs.length} description={` ${RUNS_LABEL}`} />
+        <Stat value={runs.length} description={` ${labels.runsLabel}`} />
         <Stat value={sumDistance} description={` ${DIST_UNIT}`} />
         {SHOW_ELEVATION_GAIN && (
           <Stat
             value={sumElevationGainStr}
-            description={` ${TOTAL_ELEVATION_GAIN_TITLE}`}
+            description={` ${labels.totalElevationGainTitle}`}
           />
         )}
-        <Stat value={avgPace} description={` ${AVG_PACE_LABEL}`} />
+        <Stat value={avgPace} description={` ${labels.avgPaceLabel}`} />
         <Stat
-          value={`${streak} ${STREAK_UNIT_LABEL}`}
-          description={` ${STREAK_LABEL}`}
+          value={`${streak} ${labels.streakUnitLabel}`}
+          description={` ${labels.streakLabel}`}
         />
         {hasHeartRate && (
-          <Stat value={avgHeartRate} description={` ${AVERAGE_HEART_RATE_TITLE}`} />
+          <Stat
+            value={avgHeartRate}
+            description={` ${labels.averageHeartRateTitle}`}
+          />
         )}
       </section>
       {year !== TOTAL_FILTER_KEY && hovered && (
-        <Suspense fallback="加载中...">
+        <Suspense fallback={labels.loadingText}>
           <YearSVG className="year-svg my-4 h-4/6 w-4/6 border-0 p-0" />
           <GithubYearSVG className="github-year-svg my-4 h-auto w-full border-0 p-0" />
         </Suspense>

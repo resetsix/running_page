@@ -79,7 +79,8 @@ class MonthOfLifeDrawer(TracksDrawer):
 
             color = "gray" if is_past else "#444444"
             age = (y - self.birth_year) + ((m - self.birth_month) / 12)
-            title = f"{y}-{m:02d} ({int(age)} years old)"
+            age_unit = self.poster.trans("years old")
+            title = f"{y}-{m:02d} ({int(age)} {age_unit})"
             if dist > 0:
                 # Set color based on special distance ranges and generate gradients or use special colors
                 sd1 = self.poster.special_distance["special_distance"]

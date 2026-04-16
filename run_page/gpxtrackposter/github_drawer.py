@@ -111,20 +111,36 @@ class GithubDrawer(TracksDrawer):
                 # support windows or others doesn't support locale Name, by Hard code
             except Exception as e:
                 print(str(e))
-                month_names = [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sep",
-                    "Oct",
-                    "Nov",
-                    "Dec",
-                ]
+                if self.poster.language.startswith("zh"):
+                    month_names = [
+                        "1月",
+                        "2月",
+                        "3月",
+                        "4月",
+                        "5月",
+                        "6月",
+                        "7月",
+                        "8月",
+                        "9月",
+                        "10月",
+                        "11月",
+                        "12月",
+                    ]
+                else:
+                    month_names = [
+                        "Jan",
+                        "Feb",
+                        "Mar",
+                        "Apr",
+                        "May",
+                        "Jun",
+                        "Jul",
+                        "Aug",
+                        "Sep",
+                        "Oct",
+                        "Nov",
+                        "Dec",
+                    ]
             dr.add(
                 dr.text(
                     f"{year}",

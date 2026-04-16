@@ -1,8 +1,9 @@
 import Stat from '@/components/Stat';
 import useActivities from '@/hooks/useActivities';
-import { RUN_OCCURRENCES_LABEL } from '@/utils/const';
+import useLabels from '@/hooks/useLabels';
 
 const PeriodStat = ({ onClick }: { onClick: (_period: string) => void }) => {
+  const labels = useLabels();
   const { runPeriod } = useActivities();
 
   const periodArr = Object.entries(runPeriod);
@@ -14,7 +15,7 @@ const PeriodStat = ({ onClick }: { onClick: (_period: string) => void }) => {
           <Stat
             key={period}
             value={period}
-            description={` ${times} ${RUN_OCCURRENCES_LABEL}`}
+            description={` ${times} ${labels.runOccurrencesLabel}`}
             citySize={3}
             onClick={() => onClick(period)}
           />

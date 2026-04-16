@@ -378,6 +378,71 @@ export interface IViewState {
   zoom?: number;
 }
 
+type GeoBounds = [Coordinate, Coordinate];
+
+const DEFAULT_MAP_BOUNDS: GeoBounds = [
+  [-180, -85],
+  [180, 85],
+];
+
+const getBoundsForCoordinates = (points: Coordinate[]): GeoBounds | null => {
+  if (points.length === 0) {
+    return null;
+  }
+
+  const pointsLong = points.map((point) => point[0]) as number[];
+  const pointsLat = points.map((point) => point[1]) as number[];
+
+  return [
+    [Math.min(...pointsLong), Math.min(...pointsLat)],
+    [Math.max(...pointsLong), Math.max(...pointsLat)],
+  ];
+};
+
+const getVisibleRouteBounds = (
+  geoData: FeatureCollection<RPGeometry>
+): GeoBounds | null => {
+  const points = geoData.features.flatMap((feature) => {
+    if (feature.geometry.type !== 'LineString') {
+      return [];
+    }
+    return feature.geometry.coordinates as Coordinate[];
+  });
+
+  return getBoundsForCoordinates(points);
+};
+
+const getVisibleRouteViewState = (
+  geoData: FeatureCollection<RPGeometry>,
+  padding = 200
+): IViewState => {
+  const visibleRouteBounds = getVisibleRouteBounds(geoData);
+  if (!visibleRouteBounds) {
+    return { longitude: 20, latitude: 20, zoom: 3 };
+  }
+
+  if (
+    String(visibleRouteBounds[0]) === String(visibleRouteBounds[1])
+  ) {
+    return {
+      longitude: visibleRouteBounds[0][0],
+      latitude: visibleRouteBounds[0][1],
+      zoom: 9,
+    };
+  }
+
+  const viewState = new WebMercatorViewport({
+    width: 800,
+    height: 600,
+  }).fitBounds(visibleRouteBounds, { padding });
+
+  return {
+    longitude: viewState.longitude,
+    latitude: viewState.latitude,
+    zoom: viewState.zoom,
+  };
+};
+
 const getBoundsForGeoData = (
   geoData: FeatureCollection<LineString>
 ): IViewState => {
@@ -396,13 +461,8 @@ const getBoundsForGeoData = (
   if (points.length === 2 && String(points[0]) === String(points[1])) {
     return { longitude: points[0][0], latitude: points[0][1], zoom: 9 };
   }
-  // Calculate corner values of bounds
-  const pointsLong = points.map((point) => point[0]) as number[];
-  const pointsLat = points.map((point) => point[1]) as number[];
-  const cornersLongLat: [Coordinate, Coordinate] = [
-    [Math.min(...pointsLong), Math.min(...pointsLat)],
-    [Math.max(...pointsLong), Math.max(...pointsLat)],
-  ];
+  const cornersLongLat =
+    getBoundsForCoordinates(points) ?? DEFAULT_MAP_BOUNDS;
   const viewState = new WebMercatorViewport({
     width: 800,
     height: 600,
@@ -517,6 +577,8 @@ export {
   sortDateFunc,
   sortDateFuncReverse,
   getBoundsForGeoData,
+  getVisibleRouteBounds,
+  getVisibleRouteViewState,
   formatRunTime,
   convertMovingTime2Sec,
   getMapStyle,

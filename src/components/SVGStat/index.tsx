@@ -1,15 +1,29 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useMemo } from 'react';
 import { totalStat } from '@assets/index';
+import { useLanguage } from '@/hooks/useLanguage';
+import useLabels from '@/hooks/useLabels';
+import { getLocalizedSvgPath } from '@/utils/language';
 import { loadSvgComponent } from '@/utils/svgUtils';
 import { initSvgColorAdjustments } from '@/utils/colorUtils';
-import { LOADING_TEXT } from '@/utils/const';
-
-// Lazy load both github.svg and grid.svg
-const GithubSvg = lazy(() => loadSvgComponent(totalStat, './github.svg'));
-
-const GridSvg = lazy(() => loadSvgComponent(totalStat, './grid.svg'));
 
 const SVGStat = () => {
+  const { language } = useLanguage();
+  const labels = useLabels();
+  const GithubSvg = useMemo(
+    () =>
+      lazy(() =>
+        loadSvgComponent(totalStat, getLocalizedSvgPath('./github.svg', language))
+      ),
+    [language]
+  );
+  const GridSvg = useMemo(
+    () =>
+      lazy(() =>
+        loadSvgComponent(totalStat, getLocalizedSvgPath('./grid.svg', language))
+      ),
+    [language]
+  );
+
   useEffect(() => {
     // Initialize SVG color adjustments when component mounts
     const timer = setTimeout(() => {
@@ -21,7 +35,7 @@ const SVGStat = () => {
 
   return (
     <div id="svgStat">
-      <Suspense fallback={<div className="text-center">{LOADING_TEXT}</div>}>
+      <Suspense fallback={<div className="text-center">{labels.loadingText}</div>}>
         <GithubSvg className="github-svg mt-4 h-auto w-full" />
         <GridSvg className="grid-svg mt-4 h-auto w-full" />
       </Suspense>

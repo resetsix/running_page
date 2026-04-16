@@ -1,5 +1,6 @@
 import useActivities from '@/hooks/useActivities';
-import { TOTAL_FILTER_KEY, TOTAL_LABEL } from '@/utils/const';
+import useLabels from '@/hooks/useLabels';
+import { TOTAL_FILTER_KEY } from '@/utils/const';
 import styles from './style.module.css';
 
 const RunMapButtons = ({
@@ -9,6 +10,7 @@ const RunMapButtons = ({
   changeYear: (_year: string) => void;
   thisYear: string;
 }) => {
+  const labels = useLabels();
   const { years } = useActivities();
   const yearsButtons = years.slice();
   yearsButtons.push(TOTAL_FILTER_KEY);
@@ -25,7 +27,7 @@ const RunMapButtons = ({
             changeYear(year);
           }}
         >
-          {year === TOTAL_FILTER_KEY ? TOTAL_LABEL : year}
+          {year === TOTAL_FILTER_KEY ? labels.totalLabel : year}
         </li>
       ))}
     </ul>

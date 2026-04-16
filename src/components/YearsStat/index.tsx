@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import YearStat from '@/components/YearStat';
 import useActivities from '@/hooks/useActivities';
-import { INFO_MESSAGE, TOTAL_FILTER_KEY } from '@/utils/const';
+import useLabels from '@/hooks/useLabels';
+import { TOTAL_FILTER_KEY } from '@/utils/const';
 
 const YearsStat = ({
   year,
@@ -10,6 +11,7 @@ const YearsStat = ({
   year: string;
   onClick: (_year: string) => void;
 }) => {
+  const labels = useLabels();
   const { years } = useActivities();
 
   // Memoize the years array calculation
@@ -23,8 +25,8 @@ const YearsStat = ({
   }, [years, year]);
 
   const infoMessage = useMemo(() => {
-    return INFO_MESSAGE(years.length, year);
-  }, [years.length, year]);
+    return labels.infoMessage(years.length, year);
+  }, [labels, years.length, year]);
 
   // for short solution need to refactor
   return (

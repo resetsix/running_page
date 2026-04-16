@@ -1,10 +1,6 @@
 import YearStat from '@/components/YearStat';
-import {
-  CHINESE_LOCATION_INFO_MESSAGE_FIRST,
-  CHINESE_LOCATION_INFO_MESSAGE_SECOND,
-  CHINESE_LOCATION_INFO_MESSAGE_THIRD,
-  TOTAL_FILTER_KEY,
-} from '@/utils/const';
+import useLabels from '@/hooks/useLabels';
+import { TOTAL_FILTER_KEY } from '@/utils/const';
 import CitiesStat from './CitiesStat';
 import LocationSummary from './LocationSummary';
 import PeriodStat from './PeriodStat';
@@ -19,26 +15,28 @@ const LocationStat = ({
   changeYear,
   changeCity,
   changeTitle,
-}: ILocationStatProps) => (
-  <div className="w-full pb-16 lg:w-full lg:pr-16">
-    <section className="pb-0">
-      <p className="leading-relaxed">
-        {CHINESE_LOCATION_INFO_MESSAGE_FIRST}
-        .
-        <br />
-        {CHINESE_LOCATION_INFO_MESSAGE_SECOND}
-        .
-        <br />
-        <br />
-        {CHINESE_LOCATION_INFO_MESSAGE_THIRD}。
-      </p>
-    </section>
-    <hr />
-    <LocationSummary />
-    <CitiesStat onClick={changeCity} />
-    <PeriodStat onClick={changeTitle} />
-    <YearStat year={TOTAL_FILTER_KEY} onClick={changeYear} />
-  </div>
-);
+}: ILocationStatProps) => {
+  const labels = useLabels();
+
+  return (
+    <div className="w-full pb-16 lg:w-full lg:pr-16">
+      <section className="pb-0">
+        <p className="leading-relaxed">
+          {labels.chineseLocationInfoMessages[0]}.
+          <br />
+          {labels.chineseLocationInfoMessages[1]}.
+          <br />
+          <br />
+          {labels.chineseLocationInfoMessages[2]}。
+        </p>
+      </section>
+      <hr />
+      <LocationSummary />
+      <CitiesStat onClick={changeCity} />
+      <PeriodStat onClick={changeTitle} />
+      <YearStat year={TOTAL_FILTER_KEY} onClick={changeYear} />
+    </div>
+  );
+};
 
 export default LocationStat;

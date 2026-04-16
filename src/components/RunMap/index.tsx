@@ -13,10 +13,9 @@ import Map, {
   NavigationControl,
   MapRef,
 } from 'react-map-gl';
-import { MapInstance } from 'react-map-gl/src/types/lib';
 import useActivities from '@/hooks/useActivities';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
-  IS_CHINESE,
   ROAD_LABEL_DISPLAY,
   MAPBOX_TOKEN,
   PROVINCE_FILL_COLOR,
@@ -47,6 +46,11 @@ import './mapbox.css';
 import LightsControl from '@/components/RunMap/LightsControl';
 import { useMapTheme, useThemeChangeCounter } from '@/hooks/useTheme';
 
+type MapInstance = ReturnType<MapRef['getMap']>;
+type MapStyleDataEvent = {
+  dataType?: string;
+};
+
 interface IRunMapProps {
   title: string;
   viewState: IViewState;
@@ -66,6 +70,8 @@ const RunMap = ({
   thisYear,
   animationTrigger,
 }: IRunMapProps) => {
+  const { language } = useLanguage();
+  const isChinese = language === 'zh-CN';
   const { countries, provinces } = useActivities();
   const mapRef = useRef<MapRef>(null);
   const [lights, setLights] = useState(PRIVACY_MODE ? false : LIGHTS_ON);
@@ -240,14 +246,14 @@ const RunMap = ({
     (ref: MapRef) => {
       if (ref !== null) {
         const map = ref.getMap();
-        if (map && IS_CHINESE) {
+        if (map && isChinese) {
           map.addControl(new MapboxLanguage({ defaultLanguage: 'zh-Hans' }));
         }
         // all style resources have been downloaded
         // and the first visually complete rendering of the base style has occurred.
         // it's odd. when use style other than mapbox, the style.load event is not triggered.Add commentMore actions
         // so I use data event instead of style.load event and make sure we handle it only once.
-        map.on('data', (event) => {
+        map.on('data', (event: MapStyleDataEvent) => {
           if (event.dataType !== 'style' || mapRef.current) {
             return;
           }
@@ -260,7 +266,7 @@ const RunMap = ({
                   layer.layout.text_field !== null
               )
               .map((layer: any) => layer.id);
-            labelLayerNames.forEach((layerId) => {
+            labelLayerNames.forEach((layerId: string) => {
               map.removeLayer(layerId);
             });
           }
@@ -273,14 +279,14 @@ const RunMap = ({
         switchLayerVisibility(map, lights);
       }
     },
-    [mapRef, lights]
+    [isChinese, lights, mapRef]
   );
 
   const initGeoDataLength = geoData.features.length;
   const isBigMap = (viewState.zoom ?? 0) <= 3;
 
   useEffect(() => {
-    if (isBigMap && IS_CHINESE && !mapGeoData && !isLoadingMapData) {
+    if (isBigMap && isChinese && !mapGeoData && !isLoadingMapData) {
       setIsLoadingMapData(true);
       geoJsonForMap()
         .then((data) => {
@@ -291,10 +297,10 @@ const RunMap = ({
           setIsLoadingMapData(false);
         });
     }
-  }, [isBigMap, IS_CHINESE, mapGeoData, isLoadingMapData]);
+  }, [isBigMap, isChinese, mapGeoData, isLoadingMapData]);
 
   let combinedGeoData = geoData;
-  if (isBigMap && IS_CHINESE && mapGeoData) {
+  if (isBigMap && isChinese && mapGeoData) {
     // Show boundary and line together, combine geoData(only when not combine yet)
     if (geoData.features.length === initGeoDataLength) {
       combinedGeoData = {

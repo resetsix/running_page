@@ -1,7 +1,9 @@
 import { lazy, Suspense, useEffect, useMemo } from 'react';
 import { yearSummaryStats } from '@assets/index';
+import { useLanguage } from '@/hooks/useLanguage';
+import useLabels from '@/hooks/useLabels';
+import { getLocalizedSvgPath } from '@/utils/language';
 import { loadSvgComponent } from '@/utils/svgUtils';
-import { LOADING_TEXT } from '@/utils/const';
 import styles from './style.module.css';
 
 interface YearSummaryModalProps {
@@ -10,13 +12,18 @@ interface YearSummaryModalProps {
 }
 
 const YearSummaryModal = ({ year, onClose }: YearSummaryModalProps) => {
+  const { language } = useLanguage();
+  const labels = useLabels();
   // Memoize the lazy component to prevent re-creation on each render
   const YearSummarySVG = useMemo(
     () =>
       lazy(() =>
-        loadSvgComponent(yearSummaryStats, `./year_summary_${year}.svg`)
+        loadSvgComponent(
+          yearSummaryStats,
+          getLocalizedSvgPath(`./year_summary_${year}.svg`, language)
+        )
       ),
-    [year]
+    [language, year]
   );
 
   // Close on escape key
@@ -44,7 +51,9 @@ const YearSummaryModal = ({ year, onClose }: YearSummaryModalProps) => {
         <button className={styles.closeButton} onClick={onClose}>
           ×
         </button>
-        <Suspense fallback={<div className={styles.loading}>{LOADING_TEXT}</div>}>
+        <Suspense
+          fallback={<div className={styles.loading}>{labels.loadingText}</div>}
+        >
           <YearSummarySVG className={styles.svg} />
         </Suspense>
       </div>

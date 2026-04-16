@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import useLabels from '@/hooks/useLabels';
 import {
   sortDateFunc,
   sortDateFuncReverse,
@@ -6,13 +7,7 @@ import {
   Activity,
   RunIds,
 } from '@/utils/utils';
-import {
-  SHOW_ELEVATION_GAIN,
-  TABLE_DATE_LABEL,
-  TABLE_ELEVATION_LABEL,
-  TABLE_PACE_LABEL,
-  TABLE_TIME_LABEL,
-} from '@/utils/const';
+import { SHOW_ELEVATION_GAIN } from '@/utils/const';
 import { DIST_UNIT } from '@/utils/utils';
 
 import RunRow from './RunRow';
@@ -36,6 +31,7 @@ const RunTable = ({
   runIndex,
   setRunIndex,
 }: IRunTableProperties) => {
+  const labels = useLabels();
   const [sortFuncInfo, setSortFuncInfo] = useState<SortKey | ''>('');
 
   // Memoize sort functions to prevent recreating them on every render
@@ -87,15 +83,20 @@ const RunTable = ({
     () =>
       [
         { key: 'distance', label: DIST_UNIT },
-        { key: 'elevation', label: TABLE_ELEVATION_LABEL },
-        { key: 'pace', label: TABLE_PACE_LABEL },
+        { key: 'elevation', label: labels.tableElevationLabel },
+        { key: 'pace', label: labels.tablePaceLabel },
         { key: 'bpm', label: 'BPM' },
-        { key: 'time', label: TABLE_TIME_LABEL },
-        { key: 'date', label: TABLE_DATE_LABEL },
+        { key: 'time', label: labels.tableTimeLabel },
+        { key: 'date', label: labels.tableDateLabel },
       ].filter(
         (column) => SHOW_ELEVATION_GAIN || column.key !== 'elevation'
       ) as Array<{ key: SortKey; label: string }>,
-    []
+    [
+      labels.tableDateLabel,
+      labels.tableElevationLabel,
+      labels.tablePaceLabel,
+      labels.tableTimeLabel,
+    ]
   );
 
   const handleSort = useCallback(

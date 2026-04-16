@@ -1,6 +1,7 @@
 import React from 'react';
+import useLabels from '@/hooks/useLabels';
 import { pathForRun, Activity } from '@/utils/utils';
-import { NO_ROUTE_DATA, INVALID_ROUTE_DATA, INDOOR_COLOR } from '@/utils/const';
+import { INDOOR_COLOR } from '@/utils/const';
 import styles from './style.module.css';
 
 interface RoutePreviewProps {
@@ -12,6 +13,7 @@ const RoutePreview: React.FC<RoutePreviewProps> = ({
   activities,
   className,
 }) => {
+  const labels = useLabels();
   // Filter activities that have polyline data
   const activitiesWithRoutes = activities.filter(
     (activity) => activity.summary_polyline
@@ -20,7 +22,7 @@ const RoutePreview: React.FC<RoutePreviewProps> = ({
   if (activitiesWithRoutes.length === 0) {
     return (
       <div className={`${styles.routePreview} ${className || ''}`}>
-        <div className={styles.noRoute}>{NO_ROUTE_DATA}</div>
+        <div className={styles.noRoute}>{labels.noRouteData}</div>
       </div>
     );
   }
@@ -45,7 +47,7 @@ const RoutePreview: React.FC<RoutePreviewProps> = ({
   if (allPoints.length === 0) {
     return (
       <div className={`${styles.routePreview} ${className || ''}`}>
-        <div className={styles.noRoute}>{INVALID_ROUTE_DATA}</div>
+        <div className={styles.noRoute}>{labels.invalidRouteData}</div>
       </div>
     );
   }

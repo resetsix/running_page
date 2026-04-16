@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Analytics } from '@vercel/analytics/react';
-import { Helmet } from 'react-helmet-async';
 import Layout from '@/components/Layout';
 import LocationStat from '@/components/LocationStat';
 import RunMap from '@/components/RunMap';
@@ -8,17 +7,10 @@ import RunTable from '@/components/RunTable';
 import SVGStat from '@/components/SVGStat';
 import YearsStat from '@/components/YearsStat';
 import useActivities from '@/hooks/useActivities';
+import useLabels from '@/hooks/useLabels';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
 import { useInterval } from '@/hooks/useInterval';
-import {
-  CITY_FILTER_LABEL,
-  HTML_LANG,
-  IS_CHINESE,
-  PERIOD_FILTER_LABEL,
-  RUNNING_HEATMAP_LABEL,
-  TOTAL_FILTER_KEY,
-  YEAR_FILTER_LABEL,
-} from '@/utils/const';
+import { TOTAL_FILTER_KEY } from '@/utils/const';
 import {
   Activity,
   IViewState,
@@ -33,23 +25,28 @@ import {
   titleForShow,
   RunIds,
 } from '@/utils/utils';
-import { useTheme, useThemeChangeCounter } from '@/hooks/useTheme';
+import { useThemeChangeCounter } from '@/hooks/useTheme';
+
+type FilterType = 'year' | 'city' | 'period';
 
 const Index = () => {
+  const labels = useLabels();
   const { siteTitle, siteUrl } = useSiteMetadata();
   const { activities, thisYear } = useActivities();
   const themeChangeCounter = useThemeChangeCounter();
   const [year, setYear] = useState(thisYear);
   const [runIndex, setRunIndex] = useState(-1);
-  const [title, setTitle] = useState('');
+  const [customTitle, setCustomTitle] = useState('');
+  const [showFilterTitle, setShowFilterTitle] = useState(false);
   // Animation states for replacing intervalIdRef
   const [isAnimating, setIsAnimating] = useState(false);
   const [currentAnimationIndex, setCurrentAnimationIndex] = useState(0);
   const [animationRuns, setAnimationRuns] = useState<Activity[]>([]);
   const [currentFilter, setCurrentFilter] = useState<{
     item: string;
+    type: FilterType;
     func: (_run: Activity, _value: string) => boolean;
-  }>({ item: thisYear, func: filterYearRuns });
+  }>({ item: thisYear, type: 'year', func: filterYearRuns });
 
   // State to track if we're showing a single run from URL hash
   const [singleRunId, setSingleRunId] = useState<number | null>(null);
@@ -160,37 +157,38 @@ const Index = () => {
 
   const getMapTitle = useCallback(
     (item: string, filterLabel: string) => {
-      if (!IS_CHINESE) {
-        return `${item} ${filterLabel} ${RUNNING_HEATMAP_LABEL}`;
+      if (!labels.isChinese) {
+        return `${item} ${filterLabel} ${labels.runningHeatmapLabel}`;
       }
-      if (filterLabel === YEAR_FILTER_LABEL) {
-        return `${item} 年${RUNNING_HEATMAP_LABEL}`;
+      if (filterLabel === labels.yearFilterLabel) {
+        return `${item} 年${labels.runningHeatmapLabel}`;
       }
-      return `${item}${RUNNING_HEATMAP_LABEL}`;
+      return `${item}${labels.runningHeatmapLabel}`;
     },
-    []
+    [labels.isChinese, labels.runningHeatmapLabel, labels.yearFilterLabel]
   );
 
   const changeByItem = useCallback(
     (
       item: string,
-      name: string,
+      type: FilterType,
       func: (_run: Activity, _value: string) => boolean
     ) => {
       scrollToMap();
-      if (name != YEAR_FILTER_LABEL) {
+      if (type !== 'year') {
         setYear(thisYear);
       }
-      setCurrentFilter({ item, func });
+      setCurrentFilter({ item, type, func });
       setRunIndex(-1);
-      setTitle(getMapTitle(item, name));
+      setShowFilterTitle(true);
+      setCustomTitle('');
       // Reset single run state when changing filters
       setSingleRunId(null);
       if (window.location.hash) {
         window.history.pushState(null, '', window.location.pathname);
       }
     },
-    [getMapTitle, thisYear]
+    [thisYear]
   );
 
   const changeYear = useCallback(
@@ -204,7 +202,7 @@ const Index = () => {
         });
       }
 
-      changeByItem(y, YEAR_FILTER_LABEL, filterYearRuns);
+      changeByItem(y, 'year', filterYearRuns);
       // Stop current animation
       setIsAnimating(false);
     },
@@ -213,14 +211,14 @@ const Index = () => {
 
   const changeCity = useCallback(
     (city: string) => {
-      changeByItem(city, CITY_FILTER_LABEL, filterCityRuns);
+      changeByItem(city, 'city', filterCityRuns);
     },
     [changeByItem]
   );
 
   const changeTitle = useCallback(
     (title: string) => {
-      changeByItem(title, PERIOD_FILTER_LABEL, filterTitleRuns);
+      changeByItem(title, 'period', filterTitleRuns);
     },
     [changeByItem]
   );
@@ -294,7 +292,8 @@ const Index = () => {
       setViewState({
         ...selectedBounds,
       });
-      setTitle(titleForShow(lastRun));
+      setShowFilterTitle(false);
+      setCustomTitle(titleForShow(lastRun));
       scrollToMap();
     },
     [runs]
@@ -309,7 +308,7 @@ const Index = () => {
         const runYear = targetRun.start_date_local.slice(0, 4);
         if (year !== runYear) {
           setYear(runYear);
-          setCurrentFilter({ item: runYear, func: filterYearRuns });
+          setCurrentFilter({ item: runYear, type: 'year', func: filterYearRuns });
         }
       } else {
         // If run doesn't exist, clear the hash and show a warning
@@ -407,18 +406,37 @@ const Index = () => {
     };
   }, [year]);
 
-  const { theme } = useTheme();
+  const currentFilterLabel = useMemo(() => {
+    if (currentFilter.type === 'city') return labels.cityFilterLabel;
+    if (currentFilter.type === 'period') return labels.periodFilterLabel;
+    return labels.yearFilterLabel;
+  }, [
+    currentFilter.type,
+    labels.cityFilterLabel,
+    labels.periodFilterLabel,
+    labels.yearFilterLabel,
+  ]);
+
+  const title = useMemo(() => {
+    if (showFilterTitle) {
+      return getMapTitle(currentFilter.item, currentFilterLabel);
+    }
+    return customTitle;
+  }, [
+    currentFilter.item,
+    currentFilterLabel,
+    customTitle,
+    getMapTitle,
+    showFilterTitle,
+  ]);
 
   return (
     <Layout>
-      <Helmet>
-        <html lang={HTML_LANG} data-theme={theme} />
-      </Helmet>
       <div className="w-full lg:w-1/3">
         <h1 className="my-12 mt-6 text-5xl font-extrabold italic">
           <a href={siteUrl}>{siteTitle}</a>
         </h1>
-        {(viewState.zoom ?? 0) <= 3 && IS_CHINESE ? (
+        {(viewState.zoom ?? 0) <= 3 && labels.isChinese ? (
           <LocationStat
             changeYear={changeYear}
             changeCity={changeCity}

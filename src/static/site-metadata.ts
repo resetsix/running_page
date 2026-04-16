@@ -1,7 +1,6 @@
 import {
-  NAV_SETUP_LABEL,
-  NAV_SOURCE_LABEL,
   NAV_SUMMARY_LABEL,
+  SITE_DESCRIPTION,
 } from '@/utils/const';
 
 interface ISiteMetadataResult {
@@ -24,19 +23,11 @@ const data: ISiteMetadataResult = {
   siteTitle: 'Resetsix Running',
   siteUrl: '/',
   logo: `${getBasePath()}/images/favicon.png`,
-  description: '个人跑步记录页面，由 Keep、GitHub Actions 与 Netlify 提供支持。',
+  description: SITE_DESCRIPTION,
   navLinks: [
     {
       name: NAV_SUMMARY_LABEL,
       url: `${getBasePath()}/summary`,
-    },
-    {
-      name: NAV_SOURCE_LABEL,
-      url: 'https://github.com/resetsix/running_page',
-    },
-    {
-      name: NAV_SETUP_LABEL,
-      url: 'https://github.com/resetsix/running_page/blob/master/docs/netlify-deployment.md',
     },
   ],
 };

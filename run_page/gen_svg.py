@@ -20,6 +20,13 @@ __app_name__ = "create_poster"
 __app_author__ = "flopp.net"
 
 
+def add_output_suffix(path, suffix):
+    if not suffix:
+        return path
+    root, ext = os.path.splitext(path)
+    return f"{root}{suffix}{ext}"
+
+
 def main():
     """Handle command line arguments and call other modules as needed."""
 
@@ -207,6 +214,14 @@ def main():
         action="store_true",
         help="Generate separate SVG files for each year (for github type only)",
     )
+    args_parser.add_argument(
+        "--output-suffix",
+        dest="output_suffix",
+        metavar="SUFFIX",
+        type=str,
+        default="",
+        help='Optional suffix appended before ".svg" for generated output files.',
+    )
 
     for _, drawer in drawers.items():
         drawer.create_args(args_parser)
@@ -312,7 +327,12 @@ def main():
             drawers[args.type].year = y
             p.draw(
                 drawers[args.type],
-                os.path.join(output_dir, f"year_summary_{str(y)}.svg"),
+                os.path.join(
+                    output_dir,
+                    add_output_suffix(
+                        f"year_summary_{str(y)}.svg", args.output_suffix
+                    ),
+                ),
             )
     elif is_github and args.year == "all" and args.generate_all_years:
         # Generate GitHub heat map for all years when --generate-all-years flag is set
@@ -325,12 +345,20 @@ def main():
             # Re-set tracks for this year's data
             p.set_tracks(tracks)
             # Use year-specific title if available, otherwise use default
-            year_title = args.title if args.title else f"{y} Running"
+            if args.title:
+                year_title = args.title
+            elif p.language.startswith("zh"):
+                year_title = f"{y} 跑步"
+            else:
+                year_title = f"{y} Running"
             original_title = p.title
             p.title = year_title
             p.draw(
                 drawers[args.type],
-                os.path.join(output_dir, f"github_{str(y)}.svg"),
+                os.path.join(
+                    output_dir,
+                    add_output_suffix(f"github_{str(y)}.svg", args.output_suffix),
+                ),
             )
             # Restore original title for next iteration
             p.title = original_title

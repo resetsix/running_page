@@ -3,18 +3,19 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import Header from '@/components/Header';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
-import { HTML_LANG, META_KEYWORDS } from '@/utils/const';
+import useLabels from '@/hooks/useLabels';
 
 const Layout = ({ children }: React.PropsWithChildren) => {
   const { siteTitle, description } = useSiteMetadata();
+  const labels = useLabels();
 
   return (
     <>
       <Helmet>
-        <html lang={HTML_LANG} />
+        <html lang={labels.htmlLang} />
         <title>{siteTitle}</title>
         <meta name="description" content={description} />
-        <meta name="keywords" content={META_KEYWORDS} />
+        <meta name="keywords" content={labels.metaKeywords} />
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no"

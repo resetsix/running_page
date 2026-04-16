@@ -2,6 +2,35 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="color-scheme" content="dark light" />
+    <style>
+      html[data-theme='dark'],
+      html[data-theme='dark'] body {
+        background: #171717;
+        color: #e0ed5e;
+        color-scheme: dark;
+      }
+
+      html[data-theme='light'],
+      html[data-theme='light'] body {
+        background: #f5f5f5;
+        color: #082f49;
+        color-scheme: light;
+      }
+    </style>
+    <script>
+      (function () {
+        var storedTheme = localStorage.getItem('theme');
+        var theme = storedTheme === 'light' ? 'light' : 'dark';
+        var storedLanguage = localStorage.getItem('language');
+        var language = storedLanguage === 'en' ? 'en' : 'zh-CN';
+        var root = document.documentElement;
+
+        root.setAttribute('data-theme', theme);
+        root.setAttribute('lang', language);
+        root.style.colorScheme = theme;
+      })();
+    </script>
     <script>
       (function () {
         const basePath = '%BASE_URL%';

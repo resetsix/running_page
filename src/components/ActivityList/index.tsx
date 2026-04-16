@@ -19,15 +19,12 @@ import {
 import VirtualList from 'rc-virtual-list';
 import { useNavigate } from 'react-router-dom';
 import styles from './style.module.css';
-import {
-  ACTIVITY_TOTAL,
-  LIFE_LABEL,
-  LOADING_SVG_TEXT,
-  LOADING_TEXT,
-} from '@/utils/const';
+import { useLanguage } from '@/hooks/useLanguage';
+import useLabels from '@/hooks/useLabels';
+import { getLocalizedSvgPath } from '@/utils/language';
 import { totalStat, yearSummaryStats } from '@assets/index';
-import { loadSvgComponent } from '@/utils/svgUtils';
-import { SHOW_ELEVATION_GAIN, HOME_PAGE_TITLE } from '@/utils/const';
+import { loadSvgComponent, SvgComponent } from '@/utils/svgUtils';
+import { SHOW_ELEVATION_GAIN } from '@/utils/const';
 import { DIST_UNIT, M_TO_DIST } from '@/utils/utils';
 import RoutePreview from '@/components/RoutePreview';
 import { Activity } from '@/utils/utils';
@@ -48,31 +45,27 @@ const VIRTUAL_LIST_STYLES = {
       'var(--color-primary, var(--color-scrollbar-thumb, rgba(0,0,0,0.4)))',
   },
 };
-const MonthOfLifeSvg = (sportType: string) => {
+const MonthOfLifeSvg = (sportType: string, language: 'zh-CN' | 'en') => {
   const path = sportType === 'all' ? './mol.svg' : `./mol_${sportType}.svg`;
-  return lazy(() => loadSvgComponent(totalStat, path));
+  return lazy(() =>
+    loadSvgComponent(totalStat, getLocalizedSvgPath(path, language))
+  );
 };
 
-const RunningSvg = MonthOfLifeSvg('running');
-const WalkingSvg = MonthOfLifeSvg('walking');
-const HikingSvg = MonthOfLifeSvg('hiking');
-const CyclingSvg = MonthOfLifeSvg('cycling');
-const SwimmingSvg = MonthOfLifeSvg('swimming');
-const SkiingSvg = MonthOfLifeSvg('skiing');
-const AllSvg = MonthOfLifeSvg('all');
-
 // Cache for year summary lazy components to prevent flickering
-const yearSummaryCache: Record<
-  string,
-  React.LazyExoticComponent<React.FC<React.SVGProps<SVGSVGElement>>>
-> = {};
-const getYearSummarySvg = (year: string) => {
-  if (!yearSummaryCache[year]) {
-    yearSummaryCache[year] = lazy(() =>
-      loadSvgComponent(yearSummaryStats, `./year_summary_${year}.svg`)
+const yearSummaryCache: Record<string, React.LazyExoticComponent<SvgComponent>> =
+  {};
+const getYearSummarySvg = (year: string, language: 'zh-CN' | 'en') => {
+  const cacheKey = `${year}-${language}`;
+  if (!yearSummaryCache[cacheKey]) {
+    yearSummaryCache[cacheKey] = lazy(() =>
+      loadSvgComponent(
+        yearSummaryStats,
+        getLocalizedSvgPath(`./year_summary_${year}.svg`, language)
+      )
     );
   }
-  return yearSummaryCache[year];
+  return yearSummaryCache[cacheKey];
 };
 
 interface ActivitySummary {
@@ -130,12 +123,15 @@ const ActivityCardInner: React.FC<ActivityCardProps> = ({
   interval,
   activities = [],
 }) => {
+  const { language } = useLanguage();
+  const labels = useLabels();
   const [isFlipped, setIsFlipped] = useState(false);
   const handleCardClick = () => {
     if (interval === 'day' && activities.length > 0) {
       setIsFlipped(!isFlipped);
     }
   };
+  const summaryDateLocale = language === 'zh-CN' ? 'zh-CN' : 'en-US';
   const generateLabels = (): number[] => {
     if (interval === 'month') {
       const [year, month] = period.split('-').map(Number);
@@ -158,17 +154,28 @@ const ActivityCardInner: React.FC<ActivityCardProps> = ({
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
-    return `${h}h ${m}m ${s}s`;
+    return `${h}${labels.timeHoursLabel} ${m}${labels.timeMinutesLabel} ${s}${labels.timeSecondsLabel}`;
   };
 
   const formatPace = (speed: number): string => {
-    if (speed === 0) return `0:00 min/${DIST_UNIT}`;
+    if (speed === 0) return `0:00 ${labels.paceMinutesLabel}/${DIST_UNIT}`;
     const pace = 60 / speed; // min/DIST_UNIT
     const totalSeconds = Math.round(pace * 60); // Total seconds per DIST_UNIT
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds} min/${DIST_UNIT}`;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds} ${labels.paceMinutesLabel}/${DIST_UNIT}`;
   };
+
+  const displayPeriod = useMemo(() => {
+    if (interval !== 'day') return period;
+    const date = new Date(`${period}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return period;
+    return date.toLocaleDateString(summaryDateLocale, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  }, [interval, period, summaryDateLocale]);
 
   // Calculate Y-axis maximum value and ticks
   const yAxisMax = Math.ceil(
@@ -191,49 +198,55 @@ const ActivityCardInner: React.FC<ActivityCardProps> = ({
       <div className={`${styles.cardInner} ${isFlipped ? styles.flipped : ''}`}>
         {/* Front side - Activity details */}
         <div className={styles.cardFront}>
-          <h2 className={styles.activityName}>{period}</h2>
+          <h2 className={styles.activityName}>{displayPeriod}</h2>
           <div className={styles.activityDetails}>
             <p>
-              <strong>{ACTIVITY_TOTAL.TOTAL_DISTANCE_TITLE}:</strong>{' '}
+              <strong>{labels.activityTotal.TOTAL_DISTANCE_TITLE}:</strong>{' '}
               {summary.totalDistance.toFixed(2)} {DIST_UNIT}
             </p>
             {SHOW_ELEVATION_GAIN &&
               summary.totalElevationGain !== undefined && (
                 <p>
-                  <strong>{ACTIVITY_TOTAL.TOTAL_ELEVATION_GAIN_TITLE}:</strong>{' '}
+                  <strong>
+                    {labels.activityTotal.TOTAL_ELEVATION_GAIN_TITLE}:
+                  </strong>{' '}
                   {summary.totalElevationGain.toFixed(0)} m
                 </p>
               )}
             <p>
-              <strong>{ACTIVITY_TOTAL.AVERAGE_SPEED_TITLE}:</strong>{' '}
+              <strong>{labels.activityTotal.AVERAGE_SPEED_TITLE}:</strong>{' '}
               {formatPace(summary.averageSpeed)}
             </p>
             <p>
-              <strong>{ACTIVITY_TOTAL.TOTAL_TIME_TITLE}:</strong>{' '}
+              <strong>{labels.activityTotal.TOTAL_TIME_TITLE}:</strong>{' '}
               {formatTime(summary.totalTime)}
             </p>
             {summary.averageHeartRate !== undefined && (
               <p>
-                <strong>{ACTIVITY_TOTAL.AVERAGE_HEART_RATE_TITLE}:</strong>{' '}
-                {summary.averageHeartRate.toFixed(0)} bpm
+                <strong>
+                  {labels.activityTotal.AVERAGE_HEART_RATE_TITLE}:
+                </strong>{' '}
+                {summary.averageHeartRate.toFixed(0)} {labels.heartRateUnitLabel}
               </p>
             )}
             {interval !== 'day' && (
               <>
                 <p>
-                  <strong>{ACTIVITY_TOTAL.ACTIVITY_COUNT_TITLE}:</strong>{' '}
+                  <strong>{labels.activityTotal.ACTIVITY_COUNT_TITLE}:</strong>{' '}
                   {summary.count}
                 </p>
                 <p>
-                  <strong>{ACTIVITY_TOTAL.MAX_DISTANCE_TITLE}:</strong>{' '}
+                  <strong>{labels.activityTotal.MAX_DISTANCE_TITLE}:</strong>{' '}
                   {summary.maxDistance.toFixed(2)} {DIST_UNIT}
                 </p>
                 <p>
-                  <strong>{ACTIVITY_TOTAL.MAX_SPEED_TITLE}:</strong>{' '}
+                  <strong>{labels.activityTotal.MAX_SPEED_TITLE}:</strong>{' '}
                   {formatPace(summary.maxSpeed)}
                 </p>
                 <p>
-                  <strong>{ACTIVITY_TOTAL.AVERAGE_DISTANCE_TITLE}:</strong>{' '}
+                  <strong>
+                    {labels.activityTotal.AVERAGE_DISTANCE_TITLE}:
+                  </strong>{' '}
                   {(summary.totalDistance / summary.count).toFixed(2)}{' '}
                   {DIST_UNIT}
                 </p>
@@ -333,6 +346,8 @@ const activityCardAreEqual = (
 const ActivityCard = React.memo(ActivityCardInner, activityCardAreEqual);
 
 const ActivityList: React.FC = () => {
+  const { language } = useLanguage();
+  const labels = useLabels();
   const [interval, setInterval] = useState<IntervalType>('month');
   const [sportType, setSportType] = useState<string>('all');
   const [sportTypeOptions, setSportTypeOptions] = useState<string[]>([]);
@@ -477,7 +492,7 @@ const ActivityList: React.FC = () => {
             break;
           }
           case 'day':
-            key = date.toLocaleDateString('zh').replaceAll('/', '-');
+            key = activity.start_date_local.slice(0, 10);
             index = 0;
             break;
           default:
@@ -697,12 +712,19 @@ const ActivityList: React.FC = () => {
       : `${itemsPerRow * itemWidth + Math.max(0, itemsPerRow - 1) * gap}px`;
 
   const loading = itemsPerRow < 1 || !rowHeight;
+  const RunningSvg = useMemo(() => MonthOfLifeSvg('running', language), [language]);
+  const WalkingSvg = useMemo(() => MonthOfLifeSvg('walking', language), [language]);
+  const HikingSvg = useMemo(() => MonthOfLifeSvg('hiking', language), [language]);
+  const CyclingSvg = useMemo(() => MonthOfLifeSvg('cycling', language), [language]);
+  const SwimmingSvg = useMemo(() => MonthOfLifeSvg('swimming', language), [language]);
+  const SkiingSvg = useMemo(() => MonthOfLifeSvg('skiing', language), [language]);
+  const AllSvg = useMemo(() => MonthOfLifeSvg('all', language), [language]);
 
   return (
     <div className={styles.activityList}>
       <div className={styles.filterContainer} ref={filterRef}>
         <button className={styles.smallHomeButton} onClick={handleHomeClick}>
-          {HOME_PAGE_TITLE}
+          {labels.homePageTitle}
         </button>
         <select
           onChange={(e) => setSportType(e.target.value)}
@@ -714,7 +736,7 @@ const ActivityList: React.FC = () => {
               value={type}
               disabled={interval === 'life' && type !== 'all'}
             >
-              {type}
+              {labels.sportTypeLabels[type] ?? type}
             </option>
           ))}
         </select>
@@ -722,11 +744,11 @@ const ActivityList: React.FC = () => {
           onChange={(e) => toggleInterval(e.target.value as IntervalType)}
           value={interval}
         >
-          <option value="year">{ACTIVITY_TOTAL.YEARLY_TITLE}</option>
-          <option value="month">{ACTIVITY_TOTAL.MONTHLY_TITLE}</option>
-          <option value="week">{ACTIVITY_TOTAL.WEEKLY_TITLE}</option>
-          <option value="day">{ACTIVITY_TOTAL.DAILY_TITLE}</option>
-          <option value="life">{LIFE_LABEL}</option>
+          <option value="year">{labels.activityTotal.YEARLY_TITLE}</option>
+          <option value="month">{labels.activityTotal.MONTHLY_TITLE}</option>
+          <option value="week">{labels.activityTotal.WEEKLY_TITLE}</option>
+          <option value="day">{labels.activityTotal.DAILY_TITLE}</option>
+          <option value="life">{labels.lifeLabel}</option>
         </select>
       </div>
 
@@ -746,11 +768,11 @@ const ActivityList: React.FC = () => {
               </button>
             ))}
           </div>
-          <Suspense fallback={<div>{LOADING_SVG_TEXT}</div>}>
+          <Suspense fallback={<div>{labels.loadingSvgText}</div>}>
             {selectedYear ? (
               // Show Year Summary SVG when a year is selected
               (() => {
-                const YearSvg = getYearSummarySvg(selectedYear);
+                const YearSvg = getYearSummarySvg(selectedYear, language);
                 return <YearSvg className={styles.yearSummarySvg} />;
               })()
             ) : (
@@ -837,7 +859,7 @@ const ActivityList: React.FC = () => {
                       color: 'var(--color-run-table-thead)',
                     }}
                   >
-                    {LOADING_TEXT}
+                    {labels.loadingText}
                   </div>
                 </div>
               ) : (

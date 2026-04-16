@@ -1,17 +1,15 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
+import { useLanguage } from '@/hooks/useLanguage';
+import useLabels from '@/hooks/useLabels';
 import { useTheme, Theme } from '@/hooks/useTheme';
-import {
-  SWITCH_TO_DARK_THEME_LABEL,
-  SWITCH_TO_LIGHT_THEME_LABEL,
-} from '@/utils/const';
 import styles from './style.module.css';
 
 const Header = () => {
   const { logo, siteUrl, navLinks } = useSiteMetadata();
-  const { setTheme } = useTheme();
-  const [currentIconIndex, setCurrentIconIndex] = useState(0);
+  const { language, setLanguage } = useLanguage();
+  const labels = useLabels();
+  const { theme, setTheme } = useTheme();
 
   const icons = [
     {
@@ -57,16 +55,15 @@ const Header = () => {
   ];
 
   const handleToggle = () => {
-    const nextIndex = (currentIconIndex + 1) % icons.length;
-    setCurrentIconIndex(nextIndex);
-    setTheme(icons[nextIndex].id as Theme);
+    const nextTheme: Theme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
   };
 
-  const currentIcon = icons[currentIconIndex];
+  const currentIcon = theme === 'dark' ? icons[0] : icons[1];
   const nextThemeLabel =
-    currentIcon.id === 'dark'
-      ? SWITCH_TO_DARK_THEME_LABEL
-      : SWITCH_TO_LIGHT_THEME_LABEL;
+    theme === 'dark'
+      ? labels.switchToLightThemeLabel
+      : labels.switchToDarkThemeLabel;
 
   return (
     <>
@@ -88,6 +85,26 @@ const Header = () => {
               {n.name}
             </a>
           ))}
+          <div className={styles.languageToggle}>
+            <button
+              type="button"
+              onClick={() => setLanguage('zh-CN')}
+              className={`${styles.languageButton} ${language === 'zh-CN' ? styles.languageButtonActive : ''}`}
+              aria-label={labels.switchToChineseLabel}
+              title={labels.switchToChineseLabel}
+            >
+              {labels.languageZhLabel}
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguage('en')}
+              className={`${styles.languageButton} ${language === 'en' ? styles.languageButtonActive : ''}`}
+              aria-label={labels.switchToEnglishLabel}
+              title={labels.switchToEnglishLabel}
+            >
+              {labels.languageEnLabel}
+            </button>
+          </div>
           <div className="ml-4 flex items-center space-x-2">
             <button
               type="button"
