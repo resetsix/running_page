@@ -15,22 +15,22 @@ const getBasePath = () => {
 };
 
 const data: ISiteMetadataResult = {
-  siteTitle: 'Running Page',
-  siteUrl: 'https://yihong.run',
-  logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTtc69JxHNcmN1ETpMUX4dozAgAN6iPjWalQ&usqp=CAU',
-  description: 'Personal site and blog',
+  siteTitle: 'Resetsix Running',
+  siteUrl: '/',
+  logo: `${getBasePath()}/images/favicon.png`,
+  description: 'Personal running page powered by Keep sync and Netlify.',
   navLinks: [
     {
       name: 'Summary',
       url: `${getBasePath()}/summary`,
     },
     {
-      name: 'Blog',
-      url: 'https://github.com/yihong0618/gitblog',
+      name: 'Source',
+      url: 'https://github.com/resetsix/running_page',
     },
     {
-      name: 'About',
-      url: 'https://github.com/yihong0618/running_page/blob/master/README-CN.md',
+      name: 'Setup',
+      url: 'https://github.com/resetsix/running_page',
     },
   ],
 };
