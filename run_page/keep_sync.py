@@ -187,7 +187,7 @@ def parse_raw_data_to_nametuple(
     d = {
         "id": int(keep_id),
         "name": f"{KEEP2STRAVA[run_data['dataType']]} from keep",
-        # future to support others workout now only for run
+        # Keep activities are normalized into the app's unified activity types.
         "type": f"{KEEP2STRAVA[(run_data['dataType'])]}",
         "subtype": f"{KEEP2STRAVA[(run_data['dataType'])]}",
         "start_date": datetime.strftime(start_date, "%Y-%m-%d %H:%M:%S"),
@@ -516,7 +516,7 @@ if __name__ == "__main__":
         dest="sync_types",
         nargs="+",
         default=KEEP_SPORT_TYPES,
-        help="sync sport types from keep, default is running, you can choose from running, hiking, cycling",
+        help="sync sport types from keep, default is running hiking cycling; choose from running, hiking, cycling",
     )
     parser.add_argument(
         "--with-gpx",

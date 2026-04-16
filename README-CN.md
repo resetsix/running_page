@@ -436,7 +436,7 @@ python run_page/keep_sync.py ${your mobile} ${your password} --with-gpx
 python run_page/keep_sync.py 13333xxxx example --with-gpx
 ```
 
-> 增加了 keep 对其他运动类型的支持，目前可选的有 running, cycling, hiking，默认的运动数据类型为 running。
+> 增加了 keep 对其他运动类型的支持，目前可选的有 running, cycling, hiking；`keep_sync.py` 默认会同步这三类。
 
 ```bash
 python run_page/keep_sync.py ${your mobile} ${your password} --with-gpx --sync-types running cycling hiking
