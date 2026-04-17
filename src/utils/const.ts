@@ -104,6 +104,7 @@ const getUIText = (language: Language) => {
   const locationSummaryProvincesLabel = isChinese ? ' 个省份' : ' provinces';
   const locationSummaryCitiesLabel = isChinese ? ' 个城市' : ' cities';
   const tableElevationLabel = isChinese ? '爬升' : 'Elev';
+  const tableLocationLabel = isChinese ? '位置' : 'Location';
   const tablePaceLabel = isChinese ? '配速' : 'Pace';
   const tableTimeLabel = isChinese ? '时间' : 'Time';
   const tableDateLabel = isChinese ? '日期' : 'Date';
@@ -249,6 +250,7 @@ const getUIText = (language: Language) => {
     locationSummaryProvincesLabel,
     locationSummaryCitiesLabel,
     tableElevationLabel,
+    tableLocationLabel,
     tablePaceLabel,
     tableTimeLabel,
     tableDateLabel,
@@ -310,6 +312,7 @@ const LOCATION_SUMMARY_PROVINCES_LABEL =
   UI_TEXT.locationSummaryProvincesLabel;
 const LOCATION_SUMMARY_CITIES_LABEL = UI_TEXT.locationSummaryCitiesLabel;
 const TABLE_ELEVATION_LABEL = UI_TEXT.tableElevationLabel;
+const TABLE_LOCATION_LABEL = UI_TEXT.tableLocationLabel;
 const TABLE_PACE_LABEL = UI_TEXT.tablePaceLabel;
 const TABLE_TIME_LABEL = UI_TEXT.tableTimeLabel;
 const TABLE_DATE_LABEL = UI_TEXT.tableDateLabel;
@@ -380,6 +383,7 @@ export {
   LOCATION_SUMMARY_PROVINCES_LABEL,
   LOCATION_SUMMARY_CITIES_LABEL,
   TABLE_ELEVATION_LABEL,
+  TABLE_LOCATION_LABEL,
   TABLE_PACE_LABEL,
   TABLE_TIME_LABEL,
   TABLE_DATE_LABEL,

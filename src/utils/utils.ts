@@ -165,6 +165,11 @@ const extractCoordinate = (str: string): [number, number] | null => {
   return null;
 };
 
+const extractLocationField = (str: string, field: string): string => {
+  const match = str.match(new RegExp(`'${field}':\\s*(None|'([^']+)')`));
+  return match?.[2] ?? '';
+};
+
 const cities = chinaCities.map((c) => c.name);
 const locationCache = new Map<number, ReturnType<typeof locationForRun>>();
 // what about oversea?
@@ -225,6 +230,41 @@ const locationForRun = (
   const r = { country, province, city, coordinate };
   locationCache.set(run.run_id, r);
   return r;
+};
+
+const getDisplayLocationForRun = (run: Activity): string => {
+  const { city, province, country } = locationForRun(run);
+
+  if (city) {
+    return city;
+  }
+
+  if (province) {
+    return province;
+  }
+
+  if (country) {
+    return country;
+  }
+
+  if (!run.location_country) {
+    return '';
+  }
+
+  const fallbackLocation =
+    extractLocationField(run.location_country, 'city') ||
+    extractLocationField(run.location_country, 'province') ||
+    extractLocationField(run.location_country, 'country');
+
+  if (fallbackLocation) {
+    return fallbackLocation;
+  }
+
+  return run.location_country
+    .replace(/^\{+|\}+$/g, '')
+    .replace(/'latitude':\s*[-]?\d+\.\d+,?\s*/g, '')
+    .replace(/'longitude':\s*[-]?\d+\.\d+,?\s*/g, '')
+    .trim();
 };
 
 const intComma = (x = '') => {
@@ -700,6 +740,7 @@ export {
   formatPace,
   scrollToMap,
   locationForRun,
+  getDisplayLocationForRun,
   intComma,
   pathForRun,
   geoJsonForRuns,
