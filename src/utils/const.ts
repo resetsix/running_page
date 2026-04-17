@@ -80,7 +80,7 @@ const getUIText = (language: Language) => {
   const siteDescription = isChinese
     ? '个人跑步记录页面，由 Keep 提供数据支持。'
     : 'Personal running log with data provided by Keep.';
-  const totalLabel = isChinese ? '总览' : 'Total';
+  const totalLabel = isChinese ? '全部' : 'Total';
   const lifeLabel = isChinese ? '生涯' : 'Life';
   const yearFilterLabel = isChinese ? '年份' : 'Year';
   const cityFilterLabel = isChinese ? '城市' : 'City';
@@ -92,7 +92,7 @@ const getUIText = (language: Language) => {
   const streakLabel = isChinese ? '连跑' : 'Streak';
   const streakUnitLabel = isChinese ? '天' : 'day';
   const runOccurrencesLabel = isChinese ? '次' : 'Runs';
-  const navSummaryLabel = isChinese ? '总览' : 'Summary';
+  const navSummaryLabel = isChinese ? '所有运动' : 'Summary';
   const navSourceLabel = isChinese ? '源码' : 'Source';
   const navSetupLabel = isChinese ? '部署' : 'Setup';
   const languageZhLabel = '中';
@@ -136,7 +136,7 @@ const getUIText = (language: Language) => {
   const skiingTitle = isChinese ? '滑雪' : 'Skiing';
   const walkingTitle = isChinese ? '步行' : 'Walking';
   const swimmingTitle = isChinese ? '游泳' : 'Swimming';
-  const allTitle = isChinese ? '所有' : 'All';
+  const allTitle = isChinese ? '全部' : 'All';
   const activityCountTitle = isChinese ? '活动次数' : 'Activity Count';
   const maxDistanceTitle = isChinese ? '最远距离' : 'Max Distance';
   const maxSpeedTitle = isChinese ? '最快速度' : 'Max Speed';
@@ -153,7 +153,7 @@ const getUIText = (language: Language) => {
   const weeklyTitle = isChinese ? '周' : 'Weekly';
   const dailyTitle = isChinese ? '日' : 'Daily';
   const locationTitle = isChinese ? '地点' : 'Location';
-  const homePageTitle = isChinese ? '总览' : 'Home';
+  const homePageTitle = isChinese ? '首页' : 'Home';
   const loadingText = isChinese ? '加载中...' : 'Loading...';
   const noRouteData = isChinese ? '暂无路线数据' : 'No route data';
   const invalidRouteData = isChinese ? '路线数据无效' : 'Invalid route data';
