@@ -16,7 +16,7 @@ interface ISiteMetadataResult {
 }
 
 const data: ISiteMetadataResult = {
-  siteTitle: 'Resetsix Running',
+  siteTitle: '未有期 Running',
   siteUrl: '/',
   logo: getSiteAssetPath('images/favicon.png'),
   description: SITE_DESCRIPTION,
