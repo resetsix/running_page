@@ -2,6 +2,7 @@ import {
   formatPace,
   titleForRun,
   formatRunTime,
+  getDisplayLocationForRun,
   Activity,
   RunIds,
 } from '@/utils/utils';
@@ -30,6 +31,7 @@ const RunRow = ({
   const paceParts = run.average_speed ? formatPace(run.average_speed) : null;
   const heartRate = run.average_heartrate;
   const runTime = formatRunTime(run.moving_time);
+  const location = getDisplayLocationForRun(run);
   const handleClick = () => {
     if (runIndex === elementIndex) {
       setRunIndex(-1);
@@ -54,6 +56,9 @@ const RunRow = ({
       {paceParts && <td>{paceParts}</td>}
       <td>{heartRate && heartRate.toFixed(0)}</td>
       <td>{runTime}</td>
+      <td className={styles.runLocation} title={location || undefined}>
+        <span className={styles.runLocationText}>{location || '-'}</span>
+      </td>
       <td className={styles.runDate}>{run.start_date_local}</td>
     </tr>
   );

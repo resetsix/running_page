@@ -23,6 +23,11 @@ interface IRunTableProperties {
 
 type SortFunc = (_a: Activity, _b: Activity) => number;
 type SortKey = 'distance' | 'elevation' | 'pace' | 'bpm' | 'time' | 'date';
+type TableColumn = {
+  key: SortKey | 'location';
+  label: string;
+  sortable?: boolean;
+};
 
 const RunTable = ({
   runs,
@@ -79,21 +84,23 @@ const RunTable = ({
     return sortFuncMap;
   }, [sortFuncInfo]);
 
-  const sortColumns = useMemo(
+  const tableColumns = useMemo(
     () =>
       [
-        { key: 'distance', label: DIST_UNIT },
-        { key: 'elevation', label: labels.tableElevationLabel },
-        { key: 'pace', label: labels.tablePaceLabel },
-        { key: 'bpm', label: 'BPM' },
-        { key: 'time', label: labels.tableTimeLabel },
-        { key: 'date', label: labels.tableDateLabel },
+        { key: 'distance', label: DIST_UNIT, sortable: true },
+        { key: 'elevation', label: labels.tableElevationLabel, sortable: true },
+        { key: 'pace', label: labels.tablePaceLabel, sortable: true },
+        { key: 'bpm', label: 'BPM', sortable: true },
+        { key: 'time', label: labels.tableTimeLabel, sortable: true },
+        { key: 'location', label: labels.tableLocationLabel, sortable: false },
+        { key: 'date', label: labels.tableDateLabel, sortable: true },
       ].filter(
         (column) => SHOW_ELEVATION_GAIN || column.key !== 'elevation'
-      ) as Array<{ key: SortKey; label: string }>,
+      ) as TableColumn[],
     [
       labels.tableDateLabel,
       labels.tableElevationLabel,
+      labels.tableLocationLabel,
       labels.tablePaceLabel,
       labels.tableTimeLabel,
     ]
@@ -118,8 +125,15 @@ const RunTable = ({
         <thead>
           <tr>
             <th />
-            {sortColumns.map((column) => (
-              <th key={column.key} onClick={() => handleSort(column.key)}>
+            {tableColumns.map((column) => (
+              <th
+                key={column.key}
+                onClick={() =>
+                  column.sortable && column.key !== 'location'
+                    ? handleSort(column.key)
+                    : undefined
+                }
+              >
                 {column.label}
               </th>
             ))}
