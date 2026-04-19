@@ -90,7 +90,7 @@ const RunTable = ({
         { key: 'distance', label: DIST_UNIT, sortable: true },
         { key: 'elevation', label: labels.tableElevationLabel, sortable: true },
         { key: 'pace', label: labels.tablePaceLabel, sortable: true },
-        { key: 'bpm', label: 'BPM', sortable: true },
+        { key: 'bpm', label: labels.tableHeartRateLabel, sortable: true },
         { key: 'time', label: labels.tableTimeLabel, sortable: true },
         { key: 'location', label: labels.tableLocationLabel, sortable: false },
         { key: 'date', label: labels.tableDateLabel, sortable: true },
@@ -100,6 +100,7 @@ const RunTable = ({
     [
       labels.tableDateLabel,
       labels.tableElevationLabel,
+      labels.tableHeartRateLabel,
       labels.tableLocationLabel,
       labels.tablePaceLabel,
       labels.tableTimeLabel,

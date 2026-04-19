@@ -106,6 +106,7 @@ const getUIText = (language: Language) => {
   const tableElevationLabel = isChinese ? '爬升' : 'Elev';
   const tableLocationLabel = isChinese ? '位置' : 'Location';
   const tablePaceLabel = isChinese ? '配速' : 'Pace';
+  const tableHeartRateLabel = isChinese ? '心率' : 'BPM';
   const tableTimeLabel = isChinese ? '时间' : 'Time';
   const tableDateLabel = isChinese ? '日期' : 'Date';
   const loadingSvgText = isChinese ? '正在加载图表...' : 'Loading SVG...';
@@ -252,6 +253,7 @@ const getUIText = (language: Language) => {
     tableElevationLabel,
     tableLocationLabel,
     tablePaceLabel,
+    tableHeartRateLabel,
     tableTimeLabel,
     tableDateLabel,
     loadingSvgText,
@@ -273,7 +275,7 @@ const getUIText = (language: Language) => {
     timeMinutesLabel,
     timeSecondsLabel,
     paceMinutesLabel,
-    heartRateUnitLabel: 'BPM',
+    heartRateUnitLabel: isChinese ? '心率' : 'BPM',
     sportTypeLabels,
     chineseLocationInfoMessages,
   };
@@ -314,6 +316,7 @@ const LOCATION_SUMMARY_CITIES_LABEL = UI_TEXT.locationSummaryCitiesLabel;
 const TABLE_ELEVATION_LABEL = UI_TEXT.tableElevationLabel;
 const TABLE_LOCATION_LABEL = UI_TEXT.tableLocationLabel;
 const TABLE_PACE_LABEL = UI_TEXT.tablePaceLabel;
+const TABLE_HEART_RATE_LABEL = UI_TEXT.tableHeartRateLabel;
 const TABLE_TIME_LABEL = UI_TEXT.tableTimeLabel;
 const TABLE_DATE_LABEL = UI_TEXT.tableDateLabel;
 const LOADING_SVG_TEXT = UI_TEXT.loadingSvgText;
@@ -385,6 +388,7 @@ export {
   TABLE_ELEVATION_LABEL,
   TABLE_LOCATION_LABEL,
   TABLE_PACE_LABEL,
+  TABLE_HEART_RATE_LABEL,
   TABLE_TIME_LABEL,
   TABLE_DATE_LABEL,
   LOADING_SVG_TEXT,
