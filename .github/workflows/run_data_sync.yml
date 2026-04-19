@@ -3,7 +3,9 @@ name: Run Data Sync
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'
+    # Runs daily at 00:17 UTC / 08:17 Asia/Shanghai.
+    # Avoid the top of the hour, where GitHub may delay or drop scheduled runs.
+    - cron: '17 0 * * *'
   push:
     branches:
       - master
@@ -32,6 +34,13 @@ on:
       - run_page/gpxtrackposter/year_summary_drawer.py
       - src/static/hidden-activity-dates.json
       - requirements.txt
+
+permissions:
+  contents: write
+
+concurrency:
+  group: run-data-sync
+  cancel-in-progress: false
 
 env:
   # please change to your own config.
