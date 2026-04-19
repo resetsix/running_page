@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import rawActivities from '@/static/activities.json';
 import {
   Activity,
+  dedupeKeepGpxActivities,
   locationForRun,
   normalizeActivitySportType,
   titleKeyForRun,
@@ -9,7 +10,9 @@ import {
 import { COUNTRY_STANDARDIZATION } from '@/static/city';
 import { filterVisibleActivities } from '@/utils/activityVisibility';
 
-const visibleActivities = filterVisibleActivities(rawActivities as Activity[]);
+const visibleActivities = dedupeKeepGpxActivities(
+  filterVisibleActivities(rawActivities as Activity[])
+);
 const runningActivities = visibleActivities.filter(
   (activity) => normalizeActivitySportType(activity.type) === 'running'
 );

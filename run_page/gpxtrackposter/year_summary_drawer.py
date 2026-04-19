@@ -151,13 +151,31 @@ class YearSummaryDrawer(TracksDrawer):
 
         # Stats with separate value and unit for better layout
         stat_items = [
-            (self.poster.trans("Distance"), f"{int(stats['total_distance'])}", self.poster.u()),
+            (
+                self.poster.trans("Distance"),
+                f"{int(stats['total_distance'])}",
+                self.poster.u(),
+            ),
             (self.poster.trans("Runs"), f"{stats['total_runs']}", ""),
             (self.poster.trans("Avg Pace"), stats["avg_pace"], ""),
             (self.poster.trans("Streak"), f"{stats['streak']}", streak_unit),
             (self.poster.trans("Time"), f"{total_hours}", time_unit),
-            (self.poster.trans("Longest"), f"{stats['longest_run']:.1f}", ""),
         ]
+
+        if stats["avg_heartrate"] is not None:
+            stat_items.append(
+                (
+                    self.poster.trans("BPM"),
+                    f"{stats['avg_heartrate']}",
+                    "",
+                )
+            )
+
+        stat_items.extend(
+            [
+                (self.poster.trans("Longest"), f"{stats['longest_run']:.1f}", ""),
+            ]
+        )
 
         col1_x = left_margin
         col2_x = left_margin + 42
@@ -258,6 +276,7 @@ class YearSummaryDrawer(TracksDrawer):
             "half_marathon_count": 0,
             "10k_count": 0,
             "avg_pace": "0'00\"",
+            "avg_heartrate": None,
             "streak": 0,
             "total_time": 0,
             "longest_run": 0,
@@ -269,12 +288,16 @@ class YearSummaryDrawer(TracksDrawer):
         total_distance_m = sum(t.length for t in tracks)
         total_time_s = 0
         longest_run_m = 0
+        heart_rates = []
 
         for t in tracks:
             dist_km = t.length / 1000
             # Track longest run
             if t.length > longest_run_m:
                 longest_run_m = t.length
+
+            if t.average_heartrate:
+                heart_rates.append(t.average_heartrate)
 
             # Count race distances
             if dist_km >= 42.0:
@@ -310,6 +333,9 @@ class YearSummaryDrawer(TracksDrawer):
 
         # Calculate streak (consecutive days)
         stats["streak"] = self._calculate_streak(tracks)
+
+        if heart_rates:
+            stats["avg_heartrate"] = round(sum(heart_rates) / len(heart_rates))
 
         return stats
 

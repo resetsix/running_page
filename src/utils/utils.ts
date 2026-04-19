@@ -57,6 +57,10 @@ export interface Activity {
   streak: number;
 }
 
+const KEEP_GPX_DUPLICATE_NAME = 'gpx from keep';
+const KEEP_DUPLICATE_MS = 5_000;
+const KEEP_DUPLICATE_DISTANCE_RATIO = 0.08;
+
 type LocalizedRunTitleKey =
   | 'full_marathon'
   | 'half_marathon'
@@ -329,6 +333,61 @@ const normalizeActivitySportType = (type: string): string => {
 
   return rawType;
 };
+
+const isGpxFromKeepActivity = (activity: Activity): boolean =>
+  activity.name.trim().toLowerCase() === KEEP_GPX_DUPLICATE_NAME;
+
+const isCanonicalKeepActivity = (activity: Activity): boolean => {
+  const name = activity.name.trim().toLowerCase();
+  return name.endsWith(' from keep') && name !== KEEP_GPX_DUPLICATE_NAME;
+};
+
+const areSameKeepActivity = (left: Activity, right: Activity): boolean => {
+  if (normalizeActivitySportType(left.type) !== normalizeActivitySportType(right.type)) {
+    return false;
+  }
+
+  const leftStart = new Date(left.start_date_local.replace(' ', 'T')).getTime();
+  const rightStart = new Date(right.start_date_local.replace(' ', 'T')).getTime();
+  if (Number.isNaN(leftStart) || Number.isNaN(rightStart)) {
+    return false;
+  }
+
+  if (Math.abs(leftStart - rightStart) > KEEP_DUPLICATE_MS) {
+    return false;
+  }
+
+  const baseline = Math.max(left.distance, right.distance, 1);
+  return (
+    Math.abs(left.distance - right.distance) / baseline <=
+    KEEP_DUPLICATE_DISTANCE_RATIO
+  );
+};
+
+const dedupeKeepGpxActivities = (activities: Activity[]): Activity[] =>
+  activities.reduce<Activity[]>((deduped, activity) => {
+    const duplicateIndex = deduped.findIndex((candidate) => {
+      const isKeepPair =
+        (isCanonicalKeepActivity(candidate) && isGpxFromKeepActivity(activity)) ||
+        (isGpxFromKeepActivity(candidate) && isCanonicalKeepActivity(activity));
+
+      return isKeepPair && areSameKeepActivity(candidate, activity);
+    });
+
+    if (duplicateIndex === -1) {
+      deduped.push(activity);
+      return deduped;
+    }
+
+    if (
+      isCanonicalKeepActivity(activity) &&
+      isGpxFromKeepActivity(deduped[duplicateIndex])
+    ) {
+      deduped[duplicateIndex] = activity;
+    }
+
+    return deduped;
+  }, []);
 
 const colorForRun = (run: Activity): string => {
   const dynamicRunColor = getRuntimeRunColor();
@@ -763,4 +822,5 @@ export {
   isTouchDevice,
   getMapTheme,
   normalizeActivitySportType,
+  dedupeKeepGpxActivities,
 };

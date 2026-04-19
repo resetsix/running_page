@@ -36,6 +36,7 @@ ZH_TRANSLATIONS = {
     "Distance": "总距离",
     "Runs": "跑步次数",
     "Avg Pace": "平均配速",
+    "BPM": "心率",
     "Streak": "连跑",
     "Time": "时长",
     "Longest": "最长",

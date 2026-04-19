@@ -27,6 +27,7 @@ import { totalStat, yearSummaryStats } from '@assets/index';
 import { loadSvgComponent, SvgComponent } from '@/utils/svgUtils';
 import { SHOW_ELEVATION_GAIN } from '@/utils/const';
 import {
+  dedupeKeepGpxActivities,
   DIST_UNIT,
   M_TO_DIST,
   normalizeActivitySportType,
@@ -35,7 +36,9 @@ import RoutePreview from '@/components/RoutePreview';
 import { Activity } from '@/utils/utils';
 import { filterVisibleActivities } from '@/utils/activityVisibility';
 
-const visibleActivities = filterVisibleActivities(rawActivities as Activity[]);
+const visibleActivities = dedupeKeepGpxActivities(
+  filterVisibleActivities(rawActivities as Activity[])
+);
 // Layout constants (avoid magic numbers)
 const ITEM_WIDTH = 280;
 const ITEM_GAP = 20;

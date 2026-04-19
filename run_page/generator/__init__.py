@@ -13,7 +13,12 @@ from hidden_activity_dates import is_hidden_activity_date
 from polyline_processor import filter_out
 from synced_data_file_logger import save_synced_data_file_list
 
-from .db import Activity, init_db, update_or_create_activity
+from .db import (
+    Activity,
+    cleanup_keep_gpx_duplicates,
+    init_db,
+    update_or_create_activity,
+)
 
 IGNORE_BEFORE_SAVING = os.getenv("IGNORE_BEFORE_SAVING", False)
 
@@ -212,6 +217,11 @@ class Generator:
             sys.stdout.flush()
 
         save_synced_data_file_list(synced_files)
+        removed_duplicates = self.cleanup_keep_gpx_duplicates(commit=False)
+        if removed_duplicates:
+            print(
+                f"\nRemoved {len(removed_duplicates)} historical Keep/GPX duplicate activities."
+            )
 
         self.session.commit()
 
@@ -231,7 +241,19 @@ class Generator:
                 synced_files.extend(t.file_names)
             sys.stdout.flush()
 
+        removed_duplicates = self.cleanup_keep_gpx_duplicates(commit=False)
+        if removed_duplicates:
+            print(
+                f"\nRemoved {len(removed_duplicates)} historical Keep/GPX duplicate activities."
+            )
+
         self.session.commit()
+
+    def cleanup_keep_gpx_duplicates(self, commit=True):
+        removed_ids = cleanup_keep_gpx_duplicates(self.session)
+        if commit:
+            self.session.commit()
+        return removed_ids
 
     def load(self):
         # if sub_type is not in the db, just add an empty string to it

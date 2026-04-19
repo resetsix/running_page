@@ -18,6 +18,10 @@ from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
 
+KEEP_GPX_DUPLICATE_NAME = "gpx from keep"
+KEEP_DUPLICATE_SECONDS = 5
+KEEP_DUPLICATE_DISTANCE_RATIO = 0.08
+
 
 # random user name 8 letters
 def randomword():
@@ -81,9 +85,157 @@ class Activity(Base):
         return out
 
 
+def _activity_name(activity):
+    return str(getattr(activity, "name", "") or "").strip().lower()
+
+
+def _activity_type(activity):
+    return str(getattr(activity, "type", "") or "").strip().lower()
+
+
+def _activity_distance(activity):
+    return float(getattr(activity, "distance", 0) or 0)
+
+
+def _parse_activity_datetime(value):
+    if isinstance(value, datetime.datetime):
+        return value
+
+    if isinstance(value, str):
+        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
+            try:
+                return datetime.datetime.strptime(value, fmt)
+            except ValueError:
+                continue
+
+    return None
+
+
+def _activity_start_date_local(activity):
+    value = getattr(activity, "start_date_local", None)
+    return _parse_activity_datetime(value)
+
+
+def is_gpx_from_keep_activity(activity):
+    return _activity_name(activity) == KEEP_GPX_DUPLICATE_NAME
+
+
+def is_keep_source_activity(activity):
+    name = _activity_name(activity)
+    return name.endswith(" from keep") and name != KEEP_GPX_DUPLICATE_NAME
+
+
+def are_same_keep_activity(left, right):
+    if not left or not right:
+        return False
+
+    if _activity_type(left) != _activity_type(right):
+        return False
+
+    left_start = _activity_start_date_local(left)
+    right_start = _activity_start_date_local(right)
+    if not left_start or not right_start:
+        return False
+
+    if abs((left_start - right_start).total_seconds()) > KEEP_DUPLICATE_SECONDS:
+        return False
+
+    left_distance = _activity_distance(left)
+    right_distance = _activity_distance(right)
+    baseline = max(left_distance, right_distance, 1.0)
+    return (
+        abs(left_distance - right_distance) / baseline
+        <= KEEP_DUPLICATE_DISTANCE_RATIO
+    )
+
+
+def _same_day_candidates(session, activity):
+    activity_type = getattr(activity, "type", None)
+    filters = []
+
+    if activity_type:
+        filters.append(Activity.type == activity_type)
+
+    start_date_local = _activity_start_date_local(activity)
+    if start_date_local:
+        filters.append(
+            Activity.start_date_local.like(f"{start_date_local.strftime('%Y-%m-%d')}%")
+        )
+
+    query = session.query(Activity)
+    if filters:
+        query = query.filter(*filters)
+    return query.all()
+
+
+def _find_keep_duplicate_matches(session, activity, duplicate_kind):
+    matches = []
+    activity_id = getattr(activity, "id", None)
+    for candidate in _same_day_candidates(session, activity):
+        if activity_id is not None and str(getattr(candidate, "run_id", "")) == str(
+            activity_id
+        ):
+            continue
+
+        if duplicate_kind == "keep" and not is_keep_source_activity(candidate):
+            continue
+        if duplicate_kind == "gpx" and not is_gpx_from_keep_activity(candidate):
+            continue
+
+        if are_same_keep_activity(candidate, activity):
+            matches.append(candidate)
+
+    return matches
+
+
+def resolve_keep_gpx_duplicates(session, activity):
+    if is_gpx_from_keep_activity(activity):
+        return bool(_find_keep_duplicate_matches(session, activity, "keep")), []
+
+    if not is_keep_source_activity(activity):
+        return False, []
+
+    duplicates = _find_keep_duplicate_matches(session, activity, "gpx")
+    for duplicate in duplicates:
+        session.delete(duplicate)
+
+    return False, duplicates
+
+
+def cleanup_keep_gpx_duplicates(session):
+    removed_ids = []
+    gpx_activities = (
+        session.query(Activity)
+        .filter(Activity.name == KEEP_GPX_DUPLICATE_NAME)
+        .order_by(Activity.start_date_local)
+        .all()
+    )
+
+    for gpx_activity in gpx_activities:
+        keep_matches = _find_keep_duplicate_matches(session, gpx_activity, "keep")
+        if not keep_matches:
+            continue
+
+        removed_ids.append(gpx_activity.run_id)
+        session.delete(gpx_activity)
+
+    return removed_ids
+
+
 def update_or_create_activity(session, run_activity):
     created = False
     try:
+        should_skip, removed_duplicates = resolve_keep_gpx_duplicates(
+            session, run_activity
+        )
+        if removed_duplicates:
+            print(
+                f"removed {len(removed_duplicates)} keep gpx duplicate(s) for {run_activity.id}"
+            )
+        if should_skip:
+            print(f"skip duplicate keep gpx activity {run_activity.id}")
+            return False
+
         activity = (
             session.query(Activity).filter_by(run_id=int(run_activity.id)).first()
         )
