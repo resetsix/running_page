@@ -175,7 +175,7 @@ const Index = () => {
       type: FilterType,
       func: (_run: Activity, _value: string) => boolean
     ) => {
-      scrollToMap();
+      // scrollToMap();
       if (type !== 'year') {
         setYear(thisYear);
       }
@@ -295,7 +295,7 @@ const Index = () => {
       });
       setShowFilterTitle(false);
       setCustomTitle(titleForShow(lastRun));
-      scrollToMap();
+      // scrollToMap();
     },
     [runs]
   );
