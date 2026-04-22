@@ -1,9 +1,11 @@
 import Stat from '@/components/Stat';
 import useActivities from '@/hooks/useActivities';
+import useLabels from '@/hooks/useLabels';
 import { DIST_UNIT, M_TO_DIST } from '@/utils/utils';
 
 // only support China for now
 const CitiesStat = ({ onClick }: { onClick: (_city: string) => void }) => {
+  const labels = useLabels();
   const { cities } = useActivities();
 
   const citiesArr = Object.entries(cities);
@@ -14,7 +16,7 @@ const CitiesStat = ({ onClick }: { onClick: (_city: string) => void }) => {
         {citiesArr.map(([city, distance]) => (
           <Stat
             key={city}
-            value={city}
+            value={labels.cityNames[city] ?? city}
             description={` ${(distance / M_TO_DIST).toFixed(0)} ${DIST_UNIT}`}
             citySize={3}
             onClick={() => onClick(city)}

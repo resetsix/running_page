@@ -22,12 +22,12 @@ const LocationStat = ({
     <div className="w-full pb-16 lg:w-full lg:pr-16">
       <section className="pb-0">
         <p className="leading-relaxed">
-          {labels.chineseLocationInfoMessages[0]}.
+          {labels.locationInfoMessages[0]}
           <br />
-          {labels.chineseLocationInfoMessages[1]}.
+          {labels.locationInfoMessages[1]}
           <br />
           <br />
-          {labels.chineseLocationInfoMessages[2]}。
+          {labels.locationInfoMessages[2]}
         </p>
       </section>
       <hr />

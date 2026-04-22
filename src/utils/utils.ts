@@ -78,7 +78,7 @@ type LocalizedRunTitleKey =
   | 'swimming'
   | 'skiing';
 
-type RunTitleLabels = Pick<UIText, 'runTitles' | 'activityTypes'>;
+type RunTitleLabels = Pick<UIText, 'runTitles' | 'activityTypes' | 'cityNames'>;
 
 const titleForShow = (run: Activity): string => {
   const date = run.start_date_local.slice(0, 11);
@@ -522,7 +522,8 @@ const getLocalizedRunTitle = (
     const city = titleKey.slice('city:'.length, markerIndex);
     const sportKey = titleKey.slice(markerIndex + sportMarker.length);
     const sportTitle = getLocalizedRunTitle(sportKey, labels);
-    return `${city} ${sportTitle}`.trim();
+    const cityName = labels.cityNames[city] ?? city;
+    return `${cityName} ${sportTitle}`.trim();
   }
 
   switch (titleKey) {

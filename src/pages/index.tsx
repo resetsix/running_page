@@ -419,6 +419,9 @@ const Index = () => {
   ]);
 
   const currentFilterDisplayItem = useMemo(() => {
+    if (currentFilter.type === 'city') {
+      return labels.cityNames[currentFilter.item] ?? currentFilter.item;
+    }
     if (currentFilter.type === 'period') {
       return getLocalizedRunTitle(currentFilter.item, labels);
     }
@@ -437,9 +440,7 @@ const Index = () => {
     getMapTitle,
     showFilterTitle,
   ]);
-  const showLocationStat =
-    labels.isChinese &&
-    (year === TOTAL_FILTER_KEY || (viewState.zoom ?? 0) <= 3);
+  const showLocationStat = year === TOTAL_FILTER_KEY || (viewState.zoom ?? 0) <= 3;
 
   return (
     <Layout>

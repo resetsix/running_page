@@ -163,11 +163,24 @@ const getUIText = (language: Language) => {
   const timeMinutesLabel = isChinese ? '分' : 'm';
   const timeSecondsLabel = isChinese ? '秒' : 's';
   const paceMinutesLabel = isChinese ? '分' : 'min';
-  const chineseLocationInfoMessages = [
-    '跑过了一些地方，希望随着时间推移，点亮的地方越来越多',
-    '不要停下来，不要停下奔跑的脚步',
-    '别再说明天，就从今天开始',
-  ] as const;
+  const locationInfoMessages = isChinese
+    ? ([
+        '跑过了一些地方，希望随着时间推移，点亮的地方越来越多。',
+        '不要停下来，不要停下奔跑的脚步。',
+        '别再说明天，就从今天开始。',
+      ] as const)
+    : ([
+        'I have run through a few places, and I hope more places light up over time.',
+        'Do not stop. Do not stop running.',
+        'Stop saying tomorrow. Start today.',
+      ] as const);
+  const cityNames: Record<string, string> = isChinese
+    ? {}
+    : {
+        成都市: 'Chengdu',
+        泸州市: 'Luzhou',
+        凉山彝族自治州: 'Liangshan Yi Autonomous Prefecture',
+      };
 
   const activityTypes = {
     RUN_GENERIC_TITLE: runGenericTitle,
@@ -277,7 +290,9 @@ const getUIText = (language: Language) => {
     paceMinutesLabel,
     heartRateUnitLabel: isChinese ? '心率' : 'BPM',
     sportTypeLabels,
-    chineseLocationInfoMessages,
+    locationInfoMessages,
+    chineseLocationInfoMessages: locationInfoMessages,
+    cityNames,
   };
 };
 
