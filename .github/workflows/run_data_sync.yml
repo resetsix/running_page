@@ -42,8 +42,8 @@ concurrency:
 env:
   # please change to your own config.
   RUN_TYPE: keep # support strava/nike/garmin/coros/garmin_cn/garmin_sync_cn_global/keep/only_gpx/only_fit/nike_to_strava/strava_to_garmin/tcx_to_garmin/strava_to_garmin_cn/garmin_to_strava/garmin_to_strava_cn/oppo/intervals_icu/db_updater
-  ATHLETE: resetsix
-  TITLE: Resetsix Running
+  ATHLETE: 未有期
+  TITLE: 未有期 Running
   MIN_GRID_DISTANCE: 10 # change min distance here
   TITLE_GRID: Over 10km Runs # also here
 
@@ -254,15 +254,15 @@ jobs:
           ATHLETE: ${{ env.ATHLETE }}
           MIN_GRID_DISTANCE: ${{ env.MIN_GRID_DISTANCE }}
         run: |
-          python run_page/gen_svg.py --from-db --title "我的轨迹" --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.svg --use-localtime --min-distance 0.5 --language zh_CN
-          python run_page/gen_svg.py --from-db --title "$TITLE" --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.en.svg --use-localtime --min-distance 0.5
-          python run_page/gen_svg.py --from-db --title "10km 以上跑步" --type grid --athlete "$ATHLETE" --output assets/grid.svg --special-color yellow --special-color2 red --special-distance 20 --special-distance2 40 --use-localtime --min-distance "$MIN_GRID_DISTANCE" --language zh_CN
-          python run_page/gen_svg.py --from-db --title "$TITLE_GRID" --type grid --athlete "$ATHLETE" --output assets/grid.en.svg --special-color yellow --special-color2 red --special-distance 20 --special-distance2 40 --use-localtime --min-distance "$MIN_GRID_DISTANCE"
+          python run_page/gen_svg.py --from-db --title "我的轨迹" --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.svg --use-localtime --min-distance 0.5 --language zh_CN --sport-type running,walking
+          python run_page/gen_svg.py --from-db --title "$TITLE" --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.en.svg --use-localtime --min-distance 0.5 --sport-type running,walking
+          python run_page/gen_svg.py --from-db --title "10km 以上跑步" --type grid --athlete "$ATHLETE" --output assets/grid.svg --special-color yellow --special-color2 red --special-distance 20 --special-distance2 40 --use-localtime --min-distance "$MIN_GRID_DISTANCE" --language zh_CN --sport-type running
+          python run_page/gen_svg.py --from-db --title "$TITLE_GRID" --type grid --athlete "$ATHLETE" --output assets/grid.en.svg --special-color yellow --special-color2 red --special-distance 20 --special-distance2 40 --use-localtime --min-distance "$MIN_GRID_DISTANCE" --sport-type running
           python run_page/gen_svg.py --from-db --type circular --use-localtime
           python run_page/gen_svg.py --from-db --type year_summary --output assets/year_summary.svg --athlete "$ATHLETE" --language zh_CN
           python run_page/gen_svg.py --from-db --type year_summary --output assets/year_summary.en.svg --athlete "$ATHLETE" --output-suffix ".en"
-          python run_page/gen_svg.py --from-db --year all --language zh_CN --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github_years.svg --use-localtime --min-distance 0.5 --generate-all-years
-          python run_page/gen_svg.py --from-db --year all --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github_years.en.svg --use-localtime --min-distance 0.5 --generate-all-years --output-suffix ".en"
+          python run_page/gen_svg.py --from-db --year all --language zh_CN --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github_years.svg --use-localtime --min-distance 0.5 --generate-all-years --sport-type running,walking
+          python run_page/gen_svg.py --from-db --year all --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github_years.en.svg --use-localtime --min-distance 0.5 --generate-all-years --output-suffix ".en" --sport-type running,walking
 
         # if you want use the style:the start day of each year always aligns with Monday. please use the following script:
         # python run_page/gen_svg.py --from-db --title "${{ env.TITLE }}" --type github --github-style "align-monday" --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.svg --use-localtime --min-distance 0.5

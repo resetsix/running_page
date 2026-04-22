@@ -69,6 +69,7 @@ class TrackLoader:
     def __init__(self):
         self.min_length = 100
         self.special_file_names = []
+        self.use_local_time: bool = False
         self.year_range = YearRange()
         self.load_func_dict = {
             "gpx": load_gpx_file,

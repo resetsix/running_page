@@ -205,7 +205,7 @@ def main():
         metavar="SPORT_TYPE",
         type=str,
         default="all",
-        help="Sport type",
+        help="Sport type or comma-separated sport types",
     )
 
     args_parser.add_argument(
@@ -253,8 +253,13 @@ def main():
     else:
         tracks = loader.load_tracks(args.gpx_dir)
 
-    if args.sport_type != "all":
-        tracks = [track for track in tracks if track.type == args.sport_type]
+    sport_types = {
+        sport_type.strip()
+        for sport_type in args.sport_type.split(",")
+        if sport_type.strip()
+    }
+    if sport_types and sport_types != {"all"}:
+        tracks = [track for track in tracks if track.type in sport_types]
 
     if not tracks:
         return
@@ -290,6 +295,9 @@ def main():
     }
     p.units = args.units
     p.set_tracks(tracks)
+    years = p.years
+    if years is None:
+        raise PosterError("No year range available after setting tracks.")
     # circular not add footer and header
     p.drawer_type = "plain" if is_circular else "title"
     if is_mol:
@@ -297,7 +305,7 @@ def main():
     if is_year_summary:
         p.drawer_type = "year_summary"
     if args.type == "github":
-        p.height = 55 + p.years.real_year * 43
+        p.height = 55 + years.real_year * 43
     p.github_style = args.github_style
 
     if args.type == "circular":
@@ -312,18 +320,18 @@ def main():
 
     # for special circular
     if is_circular:
-        years = p.years.all()[:]
+        all_years = years.all()[:]
         output_dir = os.path.dirname(args.output) or "assets"
-        for y in years:
-            p.years.from_year, p.years.to_year = y, y
+        for y in all_years:
+            years.from_year, years.to_year = y, y
             # may be refactor
             p.set_tracks(tracks)
             p.draw(drawers[args.type], os.path.join(output_dir, f"year_{str(y)}.svg"))
     elif is_year_summary and args.summary_year is None:
         # Generate year summary for all years when --summary-year is not specified
-        years = p.years.all()[:]
+        all_years = years.all()[:]
         output_dir = os.path.dirname(args.output) or "assets"
-        for y in years:
+        for y in all_years:
             drawers[args.type].year = y
             p.draw(
                 drawers[args.type],
@@ -336,10 +344,10 @@ def main():
             )
     elif is_github and args.year == "all" and args.generate_all_years:
         # Generate GitHub heat map for all years when --generate-all-years flag is set
-        years = p.years.all()[:]
+        all_years = years.all()[:]
         output_dir = os.path.dirname(args.output) or "assets"
-        for y in years:
-            p.years.from_year, p.years.to_year = y, y
+        for y in all_years:
+            years.from_year, years.to_year = y, y
             # Single year = height for exactly 1 year row
             p.height = 55 + 1 * 43
             # Re-set tracks for this year's data

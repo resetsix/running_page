@@ -14,6 +14,7 @@ const siteMetadataFiles = [
   'src/hooks/useSiteMetadata.ts',
   'src/static/site-metadata.ts',
 ];
+const workflowFile = '.github/workflows/run_data_sync.yml';
 
 const assetsDir = path.join(rootDir, 'assets');
 const siteMetadataPath = path.join(rootDir, siteMetadataFiles[0]);
@@ -38,6 +39,8 @@ const replaceInFile = async (filePath, replacer) => {
   if (next !== source) {
     await writeFile(filePath, next, 'utf8');
   }
+
+  return next !== source;
 };
 
 for (const relativePath of siteMetadataFiles) {
@@ -47,6 +50,22 @@ for (const relativePath of siteMetadataFiles) {
     (source) => source.replace(/siteTitle:\s*'[^']+'/g, `siteTitle: '${newTitle}'`)
   );
 }
+
+await replaceInFile(path.join(rootDir, workflowFile), (source) => {
+  const athletePattern = /^(\s{2}ATHLETE:\s*).+$/m;
+  const titlePattern = /^(\s{2}TITLE:\s*).+$/m;
+
+  if (!athletePattern.test(source) || !titlePattern.test(source)) {
+    process.stderr.write(
+      `Failed to update GitHub Actions rename config in ${workflowFile}.\n`
+    );
+    process.exit(1);
+  }
+
+  return source
+    .replace(athletePattern, `$1${newName}`)
+    .replace(titlePattern, `$1${newTitle}`);
+});
 
 const assetEntries = await readdir(assetsDir, { withFileTypes: true });
 for (const entry of assetEntries) {
