@@ -437,6 +437,9 @@ const Index = () => {
     getMapTitle,
     showFilterTitle,
   ]);
+  const showLocationStat =
+    labels.isChinese &&
+    (year === TOTAL_FILTER_KEY || (viewState.zoom ?? 0) <= 3);
 
   return (
     <Layout>
@@ -444,7 +447,7 @@ const Index = () => {
         <h1 className="my-12 mt-6 text-5xl font-extrabold italic">
           <a href={siteUrl}>{siteTitle}</a>
         </h1>
-        {(viewState.zoom ?? 0) <= 3 && labels.isChinese ? (
+        {showLocationStat ? (
           <LocationStat
             changeYear={changeYear}
             changeCity={changeCity}
