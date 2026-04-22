@@ -57,7 +57,7 @@ env:
   DATA_CACHE_PREFIX: 'track_data'
   BUILD_GH_PAGES: false # Netlify handles static hosting for this fork
   SAVE_TO_PARQENT: false # If you want to save the data to the repo, set it to `true`
-  GENERATE_MONTH_OF_LIFE: false # enable after setting your real birthday month below
+  GENERATE_MONTH_OF_LIFE: true # Generate month-of-life SVGs during data sync
   BIRTHDAY_MONTH: 1989-03 # If you want to generate the month of life, set it to your birthday month, format is YYYY-MM
 
 jobs:
@@ -254,15 +254,15 @@ jobs:
           ATHLETE: ${{ env.ATHLETE }}
           MIN_GRID_DISTANCE: ${{ env.MIN_GRID_DISTANCE }}
         run: |
-          python run_page/gen_svg.py --from-db --title "我的轨迹" --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.svg --use-localtime --min-distance 0.5 --language zh_CN --sport-type running,walking
-          python run_page/gen_svg.py --from-db --title "$TITLE" --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.en.svg --use-localtime --min-distance 0.5 --sport-type running,walking
+          python run_page/gen_svg.py --from-db --title "我的轨迹" --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.svg --use-localtime --min-distance 0.5 --language zh_CN --sport-type running
+          python run_page/gen_svg.py --from-db --title "$TITLE" --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.en.svg --use-localtime --min-distance 0.5 --sport-type running
           python run_page/gen_svg.py --from-db --title "10km 以上跑步" --type grid --athlete "$ATHLETE" --output assets/grid.svg --special-color yellow --special-color2 red --special-distance 20 --special-distance2 40 --use-localtime --min-distance "$MIN_GRID_DISTANCE" --language zh_CN --sport-type running
           python run_page/gen_svg.py --from-db --title "$TITLE_GRID" --type grid --athlete "$ATHLETE" --output assets/grid.en.svg --special-color yellow --special-color2 red --special-distance 20 --special-distance2 40 --use-localtime --min-distance "$MIN_GRID_DISTANCE" --sport-type running
           python run_page/gen_svg.py --from-db --type circular --use-localtime
           python run_page/gen_svg.py --from-db --type year_summary --output assets/year_summary.svg --athlete "$ATHLETE" --language zh_CN
           python run_page/gen_svg.py --from-db --type year_summary --output assets/year_summary.en.svg --athlete "$ATHLETE" --output-suffix ".en"
-          python run_page/gen_svg.py --from-db --year all --language zh_CN --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github_years.svg --use-localtime --min-distance 0.5 --generate-all-years --sport-type running,walking
-          python run_page/gen_svg.py --from-db --year all --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github_years.en.svg --use-localtime --min-distance 0.5 --generate-all-years --output-suffix ".en" --sport-type running,walking
+          python run_page/gen_svg.py --from-db --year all --language zh_CN --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github_years.svg --use-localtime --min-distance 0.5 --generate-all-years --sport-type running
+          python run_page/gen_svg.py --from-db --year all --type github --github-style "align-firstday" --athlete "$ATHLETE" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github_years.en.svg --use-localtime --min-distance 0.5 --generate-all-years --output-suffix ".en" --sport-type running
 
         # if you want use the style:the start day of each year always aligns with Monday. please use the following script:
         # python run_page/gen_svg.py --from-db --title "${{ env.TITLE }}" --type github --github-style "align-monday" --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.svg --use-localtime --min-distance 0.5
@@ -280,8 +280,8 @@ jobs:
           python run_page/gen_svg.py --from-db --type monthoflife --birth "${{env.BIRTHDAY_MONTH}}" --special-color "#f9d367"  --special-color2 "#f0a1a8" --output assets/mol_hiking.en.svg --use-localtime --athlete "${{env.ATHLETE}}" --title "Hiker Month of Life" --sport-type hiking
           python run_page/gen_svg.py --from-db --type monthoflife --birth "${{env.BIRTHDAY_MONTH}}" --special-color "#f9d367"  --special-color2 "#f0a1a8" --output assets/mol_cycling.svg --use-localtime --athlete "${{env.ATHLETE}}" --title "骑行人生月份" --sport-type cycling --language zh_CN
           python run_page/gen_svg.py --from-db --type monthoflife --birth "${{env.BIRTHDAY_MONTH}}" --special-color "#f9d367"  --special-color2 "#f0a1a8" --output assets/mol_cycling.en.svg --use-localtime --athlete "${{env.ATHLETE}}" --title "Cyclist Month of Life" --sport-type cycling
-          python run_page/gen_svg.py --from-db --type monthoflife --birth "${{env.BIRTHDAY_MONTH}}" --special-color "#f9d367"  --special-color2 "#f0a1a8" --output assets/mol.svg --use-localtime --athlete "${{env.ATHLETE}}" --title "人生月份" --sport-type all --language zh_CN
-          python run_page/gen_svg.py --from-db --type monthoflife --birth "${{env.BIRTHDAY_MONTH}}" --special-color "#f9d367"  --special-color2 "#f0a1a8" --output assets/mol.en.svg --use-localtime --athlete "${{env.ATHLETE}}" --title "Month of Life" --sport-type all
+          python run_page/gen_svg.py --from-db --type monthoflife --birth "${{env.BIRTHDAY_MONTH}}" --special-color "#f9d367"  --special-color2 "#f0a1a8" --output assets/mol.svg --use-localtime --athlete "${{env.ATHLETE}}" --title "人生月份" --sport-type running --language zh_CN
+          python run_page/gen_svg.py --from-db --type monthoflife --birth "${{env.BIRTHDAY_MONTH}}" --special-color "#f9d367"  --special-color2 "#f0a1a8" --output assets/mol.en.svg --use-localtime --athlete "${{env.ATHLETE}}" --title "Month of Life" --sport-type running
           python run_page/gen_svg.py --from-db --type monthoflife --birth "${{env.BIRTHDAY_MONTH}}" --special-color "#f9d367"  --special-color2 "#f0a1a8" --output assets/mol_swimming.svg --use-localtime --athlete "${{env.ATHLETE}}" --title "游泳人生月份" --sport-type swimming --language zh_CN
           python run_page/gen_svg.py --from-db --type monthoflife --birth "${{env.BIRTHDAY_MONTH}}" --special-color "#f9d367"  --special-color2 "#f0a1a8" --output assets/mol_swimming.en.svg --use-localtime --athlete "${{env.ATHLETE}}" --title "Swimmer Month of Life" --sport-type swimming
           python run_page/gen_svg.py --from-db --type monthoflife --birth "${{env.BIRTHDAY_MONTH}}" --special-color "#f9d367"  --special-color2 "#f0a1a8" --output assets/mol_skiing.svg --use-localtime --athlete "${{env.ATHLETE}}" --title "滑雪人生月份" --sport-type skiing --language zh_CN
