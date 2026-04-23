@@ -64,7 +64,9 @@ const KEEP_DUPLICATE_DISTANCE_RATIO = 0.08;
 type LocalizedRunTitleKey =
   | 'full_marathon'
   | 'half_marathon'
+  | 'late_night_run'
   | 'morning_run'
+  | 'forenoon_run'
   | 'midday_run'
   | 'afternoon_run'
   | 'evening_run'
@@ -531,8 +533,12 @@ const getLocalizedRunTitle = (
       return labels.runTitles.FULL_MARATHON_RUN_TITLE;
     case 'half_marathon':
       return labels.runTitles.HALF_MARATHON_RUN_TITLE;
+    case 'late_night_run':
+      return labels.runTitles.LATE_NIGHT_RUN_TITLE;
     case 'morning_run':
       return labels.runTitles.MORNING_RUN_TITLE;
+    case 'forenoon_run':
+      return labels.runTitles.FORENOON_RUN_TITLE;
     case 'midday_run':
       return labels.runTitles.MIDDAY_RUN_TITLE;
     case 'afternoon_run':
@@ -588,16 +594,22 @@ const titleKeyForRun = (run: Activity): string => {
   if (runDistance >= 40) {
     return 'full_marathon';
   }
-  if (runHour >= 0 && runHour <= 10) {
+  if (runHour <= 4) {
+    return 'late_night_run';
+  }
+  if (runHour <= 8) {
     return 'morning_run';
   }
-  if (runHour > 10 && runHour <= 14) {
+  if (runHour <= 10) {
+    return 'forenoon_run';
+  }
+  if (runHour <= 13) {
     return 'midday_run';
   }
-  if (runHour > 14 && runHour <= 18) {
+  if (runHour <= 17) {
     return 'afternoon_run';
   }
-  if (runHour > 18 && runHour <= 21) {
+  if (runHour <= 19) {
     return 'evening_run';
   }
   return 'night_run';

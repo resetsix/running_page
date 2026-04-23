@@ -125,7 +125,9 @@ const getUIText = (language: Language) => {
     : 'Fit the map to the current route bounds';
   const fullMarathonRunTitle = isChinese ? '全程马拉松' : 'Full Marathon';
   const halfMarathonRunTitle = isChinese ? '半程马拉松' : 'Half Marathon';
+  const lateNightRunTitle = isChinese ? '深夜跑步' : 'Late Night Run';
   const morningRunTitle = isChinese ? '清晨跑步' : 'Morning Run';
+  const forenoonRunTitle = isChinese ? '上午跑步' : 'Forenoon Run';
   const middayRunTitle = isChinese ? '午间跑步' : 'Midday Run';
   const afternoonRunTitle = isChinese ? '午后跑步' : 'Afternoon Run';
   const eveningRunTitle = isChinese ? '傍晚跑步' : 'Evening Run';
@@ -210,7 +212,9 @@ const getUIText = (language: Language) => {
   const runTitles = {
     FULL_MARATHON_RUN_TITLE: fullMarathonRunTitle,
     HALF_MARATHON_RUN_TITLE: halfMarathonRunTitle,
+    LATE_NIGHT_RUN_TITLE: lateNightRunTitle,
     MORNING_RUN_TITLE: morningRunTitle,
+    FORENOON_RUN_TITLE: forenoonRunTitle,
     MIDDAY_RUN_TITLE: middayRunTitle,
     AFTERNOON_RUN_TITLE: afternoonRunTitle,
     EVENING_RUN_TITLE: eveningRunTitle,
