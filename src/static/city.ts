@@ -6,7 +6,7 @@ interface ICity {
 }
 
 // Country name patterns to standardized forms
-export const COUNTRY_STANDARDIZATION: ReadonlyArray<[string, string]> = [
+export const COUNTRY_STANDARDIZATION: ReadonlyArray = [
   ['美利坚合众国', '美国'], // United States: long form → short form
   ['奧地利', '奥地利'], // Austria: Traditional → Simplified Chinese
   ['英国', '英国'], // United Kingdom

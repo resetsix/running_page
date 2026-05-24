@@ -178,7 +178,7 @@ const getUIText = (language: Language) => {
         'Do not stop. Do not stop running.',
         'Stop saying tomorrow. Start today.',
       ] as const);
-  const cityNames: Record<string, string> = isChinese
+  const cityNames: Record = isChinese
     ? {}
     : {
         成都市: 'Chengdu',
@@ -198,7 +198,7 @@ const getUIText = (language: Language) => {
     ALL_TITLE: allTitle,
   };
 
-  const sportTypeLabels: Record<string, string> = {
+  const sportTypeLabels: Record = {
     all: allTitle,
     running: runGenericTitle,
     Run: runGenericTitle,
@@ -302,7 +302,7 @@ const getUIText = (language: Language) => {
   };
 };
 
-export type UIText = ReturnType<typeof getUIText>;
+export type UIText = ReturnType;
 
 const UI_TEXT = getUIText(CURRENT_LANGUAGE);
 const IS_CHINESE = UI_TEXT.isChinese;

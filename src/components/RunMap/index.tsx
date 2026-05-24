@@ -46,7 +46,7 @@ import './mapbox.css';
 import LightsControl from '@/components/RunMap/LightsControl';
 import { useMapTheme, useThemeChangeCounter } from '@/hooks/useTheme';
 
-type MapInstance = ReturnType<MapRef['getMap']>;
+type MapInstance = ReturnType;
 type MapStyleDataEvent = {
   dataType?: string;
 };
@@ -54,7 +54,7 @@ type MapStyleSource = {
   url?: string;
 };
 type MapStyleWithSources = {
-  sources?: Record<string, MapStyleSource>;
+  sources?: Record;
 };
 
 const supportsMapboxLanguageStyle = (
@@ -68,8 +68,8 @@ const supportsMapboxLanguageStyle = (
     const url = source.url;
     return Boolean(
       url &&
-      (url.includes('mapbox.mapbox-streets-v8') ||
-        /mapbox-streets-v[1-9][1-9]/.test(url))
+        (url.includes('mapbox.mapbox-streets-v8') ||
+          /mapbox-streets-v[1-9][1-9]/.test(url))
     );
   });
 };
@@ -79,7 +79,7 @@ interface IRunMapProps {
   viewState: IViewState;
   setViewState: (_viewState: IViewState) => void;
   changeYear: (_year: string) => void;
-  geoData: FeatureCollection<RPGeometry>;
+  geoData: FeatureCollection;
   thisYear: string;
   animationTrigger?: number; // Optional trigger to force animation replay
 }
@@ -100,8 +100,7 @@ const RunMap = ({
   const [lights, setLights] = useState(PRIVACY_MODE ? false : LIGHTS_ON);
   // layers that should remain visible when lights are off
   const keepWhenLightsOff = ['runs2', 'runs2-indoor', 'animated-run'];
-  const [mapGeoData, setMapGeoData] =
-    useState<FeatureCollection<RPGeometry> | null>(null);
+  const [mapGeoData, setMapGeoData] = useState<FeatureCollection | null>(null);
   const [isLoadingMapData, setIsLoadingMapData] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const mapboxLanguageControlRef = useRef<MapboxLanguage | null>(null);

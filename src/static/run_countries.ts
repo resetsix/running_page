@@ -3,7 +3,7 @@ import { MAIN_COLOR } from '@/utils/const';
 
 export type RPGeometry = LineString | Polygon | MultiPolygon;
 
-export const chinaGeojson: FeatureCollection<RPGeometry> = {
+export const chinaGeojson: FeatureCollection = {
   type: 'FeatureCollection',
   features: [
     {

@@ -1,10 +1,10 @@
 import { ComponentType, SVGProps } from 'react';
 
-export type SvgComponent = ComponentType<SVGProps<SVGSVGElement>>;
+export type SvgComponent = ComponentType;
 export type SvgModule = {
   default: SvgComponent;
 };
-export type SvgLoaderMap = Record<string, () => Promise<unknown>>;
+export type SvgLoaderMap = Record;
 
 const FailedLoadSvg: SvgComponent = () => {
   console.log('Failed to load SVG component');
@@ -14,7 +14,7 @@ const FailedLoadSvg: SvgComponent = () => {
 export const loadSvgComponent = async (
   stats: SvgLoaderMap,
   path: string
-): Promise<SvgModule> => {
+): Promise => {
   try {
     const module = await stats[path]();
     return { default: module as SvgComponent };

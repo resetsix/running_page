@@ -31,7 +31,7 @@ import { getMapThemeFromCurrentTheme } from '@/hooks/useTheme';
 
 export type Coordinate = [number, number];
 
-export type RunIds = Array<number> | [];
+export type RunIds = Array | [];
 
 // Check for units environment variable
 const IS_IMPERIAL = import.meta.env.VITE_USE_IMPERIAL === 'true';
@@ -80,7 +80,7 @@ type LocalizedRunTitleKey =
   | 'swimming'
   | 'skiing';
 
-type RunTitleLabels = Pick<UIText, 'runTitles' | 'activityTypes' | 'cityNames'>;
+type RunTitleLabels = Pick;
 
 const titleForShow = (run: Activity): string => {
   const date = run.start_date_local.slice(0, 11);
@@ -177,7 +177,7 @@ const extractLocationField = (str: string, field: string): string => {
 };
 
 const cities = chinaCities.map((c) => c.name);
-const locationCache = new Map<number, ReturnType<typeof locationForRun>>();
+const locationCache = new Map<number, ReturnType>();
 // what about oversea?
 const locationForRun = (
   run: Activity
@@ -433,7 +433,7 @@ const colorForRun = (run: Activity): string => {
   }
 };
 
-const geoJsonForRuns = (runs: Activity[]): FeatureCollection<LineString> => ({
+const geoJsonForRuns = (runs: Activity[]): FeatureCollection => ({
   type: 'FeatureCollection',
   features: runs.map((run) => {
     const points = pathForRun(run);
@@ -452,7 +452,7 @@ const geoJsonForRuns = (runs: Activity[]): FeatureCollection<LineString> => ({
   }),
 });
 
-const geoJsonForMap = async (): Promise<FeatureCollection<RPGeometry>> => {
+const geoJsonForMap = async (): Promise => {
   const [{ chinaGeojson }, worldGeoJson] = await Promise.all([
     import('@/static/run_countries'),
     import('@surbowl/world-geo-json-zh/world.zh.json'),
@@ -463,7 +463,7 @@ const geoJsonForMap = async (): Promise<FeatureCollection<RPGeometry>> => {
     features: [
       ...worldGeoJson.default.features,
       ...chinaGeojson.features,
-    ] as Feature<RPGeometry, GeoJsonProperties>[],
+    ] as Feature[],
   };
 };
 
@@ -657,7 +657,7 @@ const getBoundsForCoordinates = (points: Coordinate[]): GeoBounds | null => {
 };
 
 const getVisibleRouteBounds = (
-  geoData: FeatureCollection<RPGeometry>
+  geoData: FeatureCollection
 ): GeoBounds | null => {
   const points = geoData.features.flatMap((feature) => {
     if (feature.geometry.type !== 'LineString') {
@@ -670,7 +670,7 @@ const getVisibleRouteBounds = (
 };
 
 const getVisibleRouteViewState = (
-  geoData: FeatureCollection<RPGeometry>,
+  geoData: FeatureCollection,
   padding = 200
 ): IViewState => {
   const visibleRouteBounds = getVisibleRouteBounds(geoData);
@@ -698,9 +698,7 @@ const getVisibleRouteViewState = (
   };
 };
 
-const getBoundsForGeoData = (
-  geoData: FeatureCollection<LineString>
-): IViewState => {
+const getBoundsForGeoData = (geoData: FeatureCollection): IViewState => {
   const { features } = geoData;
   let points: Coordinate[] = [];
   // find first have data

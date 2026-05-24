@@ -5,10 +5,10 @@ const hiddenActivityDateSet = new Set(
   hiddenActivityDates.map((date) => date.trim()).filter(Boolean)
 );
 
-const getActivityLocalDate = (activity: Pick<Activity, 'start_date_local'>) =>
+const getActivityLocalDate = (activity: Pick) =>
   activity.start_date_local.slice(0, 10);
 
-const isActivityHiddenByDate = (activity: Pick<Activity, 'start_date_local'>) =>
+const isActivityHiddenByDate = (activity: Pick) =>
   hiddenActivityDateSet.has(getActivityLocalDate(activity));
 
 const filterVisibleActivities = (activities: Activity[]): Activity[] =>

@@ -149,7 +149,7 @@ export const useTheme = () => {
     };
 
     const handleThemeChange = (event: Event) => {
-      const customEvent = event as CustomEvent<{ theme?: Theme }>;
+      const customEvent = event as CustomEvent;
       syncTheme(normalizeTheme(customEvent.detail?.theme));
     };
 

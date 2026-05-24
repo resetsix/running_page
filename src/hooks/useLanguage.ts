@@ -48,7 +48,7 @@ export const useLanguage = () => {
     };
 
     const handleLanguageChange = (event: Event) => {
-      const customEvent = event as CustomEvent<{ language?: Language }>;
+      const customEvent = event as CustomEvent;
       syncLanguage(normalizeLanguage(customEvent.detail?.language));
     };
 
