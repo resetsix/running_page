@@ -309,7 +309,11 @@ const Index = () => {
         const runYear = targetRun.start_date_local.slice(0, 4);
         if (year !== runYear) {
           setYear(runYear);
-          setCurrentFilter({ item: runYear, type: 'year', func: filterYearRuns });
+          setCurrentFilter({
+            item: runYear,
+            type: 'year',
+            func: filterYearRuns,
+          });
         }
       } else {
         // If run doesn't exist, clear the hash and show a warning
@@ -440,7 +444,8 @@ const Index = () => {
     getMapTitle,
     showFilterTitle,
   ]);
-  const showLocationStat = year === TOTAL_FILTER_KEY || (viewState.zoom ?? 0) <= 3;
+  const showLocationStat =
+    year === TOTAL_FILTER_KEY || (viewState.zoom ?? 0) <= 3;
 
   return (
     <Layout>

@@ -337,9 +337,7 @@ def main():
                 drawers[args.type],
                 os.path.join(
                     output_dir,
-                    add_output_suffix(
-                        f"year_summary_{str(y)}.svg", args.output_suffix
-                    ),
+                    add_output_suffix(f"year_summary_{str(y)}.svg", args.output_suffix),
                 ),
             )
     elif is_github and args.year == "all" and args.generate_all_years:

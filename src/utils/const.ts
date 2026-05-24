@@ -99,7 +99,9 @@ const getUIText = (language: Language) => {
   const languageEnLabel = 'EN';
   const switchToChineseLabel = isChinese ? '当前为中文' : 'Switch to Chinese';
   const switchToEnglishLabel = isChinese ? '切换到英文' : 'Switch to English';
-  const locationSummaryYearsLabel = isChinese ? ' 年里我跑过' : ' years of running';
+  const locationSummaryYearsLabel = isChinese
+    ? ' 年里我跑过'
+    : ' years of running';
   const locationSummaryCountriesLabel = isChinese ? ' 个国家' : ' countries';
   const locationSummaryProvincesLabel = isChinese ? ' 个省份' : ' provinces';
   const locationSummaryCitiesLabel = isChinese ? ' 个城市' : ' cities';
@@ -329,8 +331,7 @@ const SWITCH_TO_CHINESE_LABEL = UI_TEXT.switchToChineseLabel;
 const SWITCH_TO_ENGLISH_LABEL = UI_TEXT.switchToEnglishLabel;
 const LOCATION_SUMMARY_YEARS_LABEL = UI_TEXT.locationSummaryYearsLabel;
 const LOCATION_SUMMARY_COUNTRIES_LABEL = UI_TEXT.locationSummaryCountriesLabel;
-const LOCATION_SUMMARY_PROVINCES_LABEL =
-  UI_TEXT.locationSummaryProvincesLabel;
+const LOCATION_SUMMARY_PROVINCES_LABEL = UI_TEXT.locationSummaryProvincesLabel;
 const LOCATION_SUMMARY_CITIES_LABEL = UI_TEXT.locationSummaryCitiesLabel;
 const TABLE_ELEVATION_LABEL = UI_TEXT.tableElevationLabel;
 const TABLE_LOCATION_LABEL = UI_TEXT.tableLocationLabel;

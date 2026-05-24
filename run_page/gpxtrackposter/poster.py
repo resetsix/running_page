@@ -20,6 +20,7 @@ DrawerType = Literal["plain", "title", "monthoflife", "year_summary"]
 class TracksDrawerProtocol(Protocol):
     def draw(self, dr: svgwrite.Drawing, size: XY, offset: XY) -> None: ...
 
+
 ZH_TRANSLATIONS = {
     "Runner": "跑者",
     "SPECIAL TRACKS": "特殊里程",
@@ -195,7 +196,9 @@ class Poster:
         text_color = self.colors["text"]
         title_style = "font-size:12px; font-family:Arial; font-weight:bold;"
         d.add(
-            d.text(self.title or "", insert=(10, 20), fill=text_color, style=title_style)
+            d.text(
+                self.title or "", insert=(10, 20), fill=text_color, style=title_style
+            )
         )
 
     def __draw_footer(self, d: svgwrite.Drawing) -> None:

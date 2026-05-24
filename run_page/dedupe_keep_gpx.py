@@ -1,44 +1,52 @@
 import json
 import sqlite3
 from datetime import datetime
+from typing import Any, TypeAlias
 
 from config import JSON_FILE, SQL_FILE
+
+Activity: TypeAlias = dict[str, Any]
 
 KEEP_GPX_DUPLICATE_NAME = "gpx from keep"
 KEEP_DUPLICATE_SECONDS = 5
 KEEP_DUPLICATE_DISTANCE_RATIO = 0.08
+START_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
-def is_gpx_from_keep(activity):
+def is_gpx_from_keep(activity: Activity) -> bool:
     return str(activity.get("name", "")).strip().lower() == KEEP_GPX_DUPLICATE_NAME
 
 
-def is_canonical_keep(activity):
+def is_canonical_keep(activity: Activity) -> bool:
     name = str(activity.get("name", "")).strip().lower()
     return name.endswith(" from keep") and name != KEEP_GPX_DUPLICATE_NAME
 
 
-def are_same_keep_activity(left, right):
-    if str(left.get("type", "")).strip().lower() != str(
-        right.get("type", "")
-    ).strip().lower():
+def activity_distance(activity: Activity) -> float:
+    return float(activity.get("distance") or 0.0)
+
+
+def are_same_keep_activity(left: Activity, right: Activity) -> bool:
+    left_type = str(left.get("type", "")).strip().lower()
+    right_type = str(right.get("type", "")).strip().lower()
+    if left_type != right_type:
         return False
 
-    left_start = datetime.strptime(left["start_date_local"], "%Y-%m-%d %H:%M:%S")
-    right_start = datetime.strptime(right["start_date_local"], "%Y-%m-%d %H:%M:%S")
-    if abs((left_start - right_start).total_seconds()) > KEEP_DUPLICATE_SECONDS:
+    left_start = datetime.strptime(str(left["start_date_local"]), START_DATE_FORMAT)
+    right_start = datetime.strptime(str(right["start_date_local"]), START_DATE_FORMAT)
+    seconds_apart = abs((left_start - right_start).total_seconds())
+    if seconds_apart > KEEP_DUPLICATE_SECONDS:
         return False
 
-    left_distance = float(left.get("distance") or 0)
-    right_distance = float(right.get("distance") or 0)
+    left_distance = activity_distance(left)
+    right_distance = activity_distance(right)
     baseline = max(left_distance, right_distance, 1.0)
-    return abs(left_distance - right_distance) / baseline <= (
-        KEEP_DUPLICATE_DISTANCE_RATIO
-    )
+    distance_ratio = abs(left_distance - right_distance) / baseline
+    return distance_ratio <= KEEP_DUPLICATE_DISTANCE_RATIO
 
 
-def dedupe_keep_gpx_activities(activities):
-    deduped = []
+def dedupe_keep_gpx_activities(activities: list[Activity]) -> list[Activity]:
+    deduped: list[Activity] = []
 
     for activity in activities:
         duplicate_index = next(
@@ -64,27 +72,33 @@ def dedupe_keep_gpx_activities(activities):
     return deduped
 
 
-def cleanup_database():
+def cleanup_database() -> list[int]:
     conn = sqlite3.connect(SQL_FILE)
-    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    rows = cursor.execute(
-        """
+    rows = cursor.execute("""
         SELECT run_id, name, distance, type, start_date_local
         FROM activities
         WHERE type != ''
         ORDER BY start_date_local
-        """
-    ).fetchall()
+        """).fetchall()
 
-    activities = [dict(row) for row in rows]
+    activities: list[Activity] = [
+        {
+            "run_id": int(run_id),
+            "name": name,
+            "distance": distance,
+            "type": activity_type,
+            "start_date_local": start_date_local,
+        }
+        for run_id, name, distance, activity_type, start_date_local in rows
+    ]
     deduped = dedupe_keep_gpx_activities(activities)
-    deduped_ids = {activity["run_id"] for activity in deduped}
+    deduped_ids = {int(activity["run_id"]) for activity in deduped}
     removed_ids = [
-        activity["run_id"]
+        int(activity["run_id"])
         for activity in activities
-        if activity["run_id"] not in deduped_ids and is_gpx_from_keep(activity)
+        if int(activity["run_id"]) not in deduped_ids and is_gpx_from_keep(activity)
     ]
 
     if removed_ids:
@@ -98,14 +112,17 @@ def cleanup_database():
     return removed_ids
 
 
-def cleanup_json():
-    with open(JSON_FILE) as f:
-        activities = json.load(f)
+def cleanup_json() -> None:
+    with open(JSON_FILE, mode="r", encoding="utf-8") as file:
+        activities = json.load(file)
+
+    if not isinstance(activities, list):
+        raise TypeError(f"Expected {JSON_FILE} to contain a JSON list")
 
     deduped = dedupe_keep_gpx_activities(activities)
 
-    with open(JSON_FILE, "w") as f:
-        json.dump(deduped, f)
+    with open(JSON_FILE, mode="w", encoding="utf-8") as file:
+        json.dump(deduped, file)
 
 
 if __name__ == "__main__":

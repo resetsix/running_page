@@ -68,8 +68,8 @@ const supportsMapboxLanguageStyle = (
     const url = source.url;
     return Boolean(
       url &&
-        (url.includes('mapbox.mapbox-streets-v8') ||
-          /mapbox-streets-v[1-9][1-9]/.test(url))
+      (url.includes('mapbox.mapbox-streets-v8') ||
+        /mapbox-streets-v[1-9][1-9]/.test(url))
     );
   });
 };
@@ -271,11 +271,7 @@ const RunMap = ({
     (ref: MapRef) => {
       if (ref !== null) {
         const map = ref.getMap();
-        if (
-          map &&
-          isChinese &&
-          mapboxLanguageControlRef.current === null
-        ) {
+        if (map && isChinese && mapboxLanguageControlRef.current === null) {
           if (
             MAP_TILE_VENDOR === 'mapbox' &&
             supportsMapboxLanguageStyle(

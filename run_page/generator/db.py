@@ -144,8 +144,7 @@ def are_same_keep_activity(left, right):
     right_distance = _activity_distance(right)
     baseline = max(left_distance, right_distance, 1.0)
     return (
-        abs(left_distance - right_distance) / baseline
-        <= KEEP_DUPLICATE_DISTANCE_RATIO
+        abs(left_distance - right_distance) / baseline <= KEEP_DUPLICATE_DISTANCE_RATIO
     )
 
 

@@ -1,7 +1,4 @@
-import {
-  NAV_SUMMARY_LABEL,
-  SITE_DESCRIPTION,
-} from '@/utils/const';
+import { NAV_SUMMARY_LABEL, SITE_DESCRIPTION } from '@/utils/const';
 import { getSiteAssetPath } from '@/utils/sitePaths';
 
 interface ISiteMetadataResult {

@@ -12,7 +12,10 @@ const SVGStat = () => {
   const GithubSvg = useMemo(
     () =>
       lazy(() =>
-        loadSvgComponent(totalStat, getLocalizedSvgPath('./github.svg', language))
+        loadSvgComponent(
+          totalStat,
+          getLocalizedSvgPath('./github.svg', language)
+        )
       ),
     [language]
   );
@@ -35,7 +38,9 @@ const SVGStat = () => {
 
   return (
     <div id="svgStat">
-      <Suspense fallback={<div className="text-center">{labels.loadingText}</div>}>
+      <Suspense
+        fallback={<div className="text-center">{labels.loadingText}</div>}
+      >
         <GithubSvg className="github-svg mt-4 h-auto w-full" />
         <GridSvg className="grid-svg mt-4 h-auto w-full" />
       </Suspense>

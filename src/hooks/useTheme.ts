@@ -119,19 +119,22 @@ export const useTheme = () => {
   /**
    * Set theme and dispatch event to notify other components
    */
-  const setTheme = useCallback((newTheme: Theme) => {
-    if (typeof window === 'undefined' || newTheme === theme) return;
+  const setTheme = useCallback(
+    (newTheme: Theme) => {
+      if (typeof window === 'undefined' || newTheme === theme) return;
 
-    applyThemeToDocument(newTheme);
-    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
-    setThemeState(newTheme);
+      applyThemeToDocument(newTheme);
+      localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+      setThemeState(newTheme);
 
-    // Dispatch custom event for theme change
-    const event = new CustomEvent(THEME_CHANGE_EVENT, {
-      detail: { theme: newTheme },
-    });
-    window.dispatchEvent(event);
-  }, [theme]);
+      // Dispatch custom event for theme change
+      const event = new CustomEvent(THEME_CHANGE_EVENT, {
+        detail: { theme: newTheme },
+      });
+      window.dispatchEvent(event);
+    },
+    [theme]
+  );
 
   // Apply theme changes to DOM and localStorage
   useEffect(() => {

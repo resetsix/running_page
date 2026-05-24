@@ -309,7 +309,11 @@ const normalizeActivitySportType = (type: string): string => {
   const rawType = type.trim();
   const normalized = rawType.toLowerCase().replace(/[\s_-]+/g, '');
 
-  if (normalized === 'run' || normalized === 'running' || normalized === 'virtualrun') {
+  if (
+    normalized === 'run' ||
+    normalized === 'running' ||
+    normalized === 'virtualrun'
+  ) {
     return 'running';
   }
 
@@ -345,12 +349,17 @@ const isCanonicalKeepActivity = (activity: Activity): boolean => {
 };
 
 const areSameKeepActivity = (left: Activity, right: Activity): boolean => {
-  if (normalizeActivitySportType(left.type) !== normalizeActivitySportType(right.type)) {
+  if (
+    normalizeActivitySportType(left.type) !==
+    normalizeActivitySportType(right.type)
+  ) {
     return false;
   }
 
   const leftStart = new Date(left.start_date_local.replace(' ', 'T')).getTime();
-  const rightStart = new Date(right.start_date_local.replace(' ', 'T')).getTime();
+  const rightStart = new Date(
+    right.start_date_local.replace(' ', 'T')
+  ).getTime();
   if (Number.isNaN(leftStart) || Number.isNaN(rightStart)) {
     return false;
   }
@@ -370,7 +379,8 @@ const dedupeKeepGpxActivities = (activities: Activity[]): Activity[] =>
   activities.reduce<Activity[]>((deduped, activity) => {
     const duplicateIndex = deduped.findIndex((candidate) => {
       const isKeepPair =
-        (isCanonicalKeepActivity(candidate) && isGpxFromKeepActivity(activity)) ||
+        (isCanonicalKeepActivity(candidate) &&
+          isGpxFromKeepActivity(activity)) ||
         (isGpxFromKeepActivity(candidate) && isCanonicalKeepActivity(activity));
 
       return isKeepPair && areSameKeepActivity(candidate, activity);
@@ -668,9 +678,7 @@ const getVisibleRouteViewState = (
     return { longitude: 20, latitude: 20, zoom: 3 };
   }
 
-  if (
-    String(visibleRouteBounds[0]) === String(visibleRouteBounds[1])
-  ) {
+  if (String(visibleRouteBounds[0]) === String(visibleRouteBounds[1])) {
     return {
       longitude: visibleRouteBounds[0][0],
       latitude: visibleRouteBounds[0][1],
@@ -708,8 +716,7 @@ const getBoundsForGeoData = (
   if (points.length === 2 && String(points[0]) === String(points[1])) {
     return { longitude: points[0][0], latitude: points[0][1], zoom: 9 };
   }
-  const cornersLongLat =
-    getBoundsForCoordinates(points) ?? DEFAULT_MAP_BOUNDS;
+  const cornersLongLat = getBoundsForCoordinates(points) ?? DEFAULT_MAP_BOUNDS;
   const viewState = new WebMercatorViewport({
     width: 800,
     height: 600,
