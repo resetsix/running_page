@@ -1,0 +1,14 @@
+{
+  "include": [
+    "run_page/audit_activity_data.py",
+    "run_page/env_utils.py",
+    "run_page/polyline_processor.py",
+    "tests/test_data_integrity.py",
+    "tests/test_generator_load.py"
+  ],
+  "extraPaths": ["run_page"],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "standard",
+  "reportMissingImports": "none",
+  "reportMissingTypeStubs": "none"
+}

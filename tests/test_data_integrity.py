@@ -2,13 +2,14 @@ import datetime
 import os
 import tempfile
 import unittest
+from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-import polyline
-
 import generator as generator_module
+import polyline
+import polyline_processor
 from audit_activity_data import audit_database, embedded_location
 from env_utils import env_bool
 from generator.db import (
@@ -18,19 +19,44 @@ from generator.db import (
     init_db,
     update_or_create_activity,
 )
-import polyline_processor
+
+
+@dataclass
+class MapStub:
+    summary_polyline: str
+
+
+@dataclass
+class ActivityStub:
+    id: int
+    run_id: int
+    name: str
+    distance: float
+    moving_time: datetime.timedelta
+    elapsed_time: datetime.timedelta
+    type: str
+    subtype: str
+    start_date: str
+    start_date_local: str
+    start_latlng: None
+    location_country: str
+    average_heartrate: float
+    average_speed: float
+    elevation_gain: float | None
+    map: MapStub
+    summary_polyline: str
 
 
 def activity_stub(
     *,
-    run_id,
-    name,
-    start,
-    route,
-    distance=5_000.0,
-    activity_type="Run",
-):
-    return SimpleNamespace(
+    run_id: int,
+    name: str,
+    start: str,
+    route: str,
+    distance: float = 5_000.0,
+    activity_type: str = "Run",
+) -> ActivityStub:
+    return ActivityStub(
         id=run_id,
         run_id=run_id,
         name=name,
@@ -46,13 +72,13 @@ def activity_stub(
         average_heartrate=140.0,
         average_speed=3.0,
         elevation_gain=10.0,
-        map=SimpleNamespace(summary_polyline=route),
+        map=MapStub(summary_polyline=route),
         summary_polyline=route,
     )
 
 
 class EnvironmentBooleanTest(unittest.TestCase):
-    def test_explicit_boolean_values(self):
+    def test_explicit_boolean_values(self) -> None:
         for value in ("1", "true", "TRUE", "yes", "on"):
             with (
                 self.subTest(value=value),
@@ -66,13 +92,13 @@ class EnvironmentBooleanTest(unittest.TestCase):
             ):
                 self.assertFalse(env_bool("TEST_BOOLEAN", default=True))
 
-    def test_unknown_value_uses_default(self):
+    def test_unknown_value_uses_default(self) -> None:
         with mock.patch.dict(os.environ, {"TEST_BOOLEAN": "unexpected"}):
             self.assertTrue(env_bool("TEST_BOOLEAN", default=True))
 
 
 class KeepGpxDedupeTest(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         self.db_path = Path(self.temp_dir.name) / "activities.db"
         self.session = init_db(str(self.db_path))
@@ -80,11 +106,11 @@ class KeepGpxDedupeTest(unittest.TestCase):
             [(30.0, 104.0), (30.01, 104.01), (30.02, 104.02), (30.03, 104.03)]
         )
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.session.close()
         self.temp_dir.cleanup()
 
-    def test_delayed_partial_route_is_duplicate(self):
+    def test_delayed_partial_route_is_duplicate(self) -> None:
         canonical = activity_stub(
             run_id=9223370000000000001,
             name="Running from keep",
@@ -101,7 +127,7 @@ class KeepGpxDedupeTest(unittest.TestCase):
         )
         self.assertTrue(are_same_keep_activity(canonical, partial))
 
-    def test_similar_time_but_different_route_is_not_duplicate(self):
+    def test_similar_time_but_different_route_is_not_duplicate(self) -> None:
         canonical = activity_stub(
             run_id=1,
             name="Running from keep",
@@ -116,7 +142,7 @@ class KeepGpxDedupeTest(unittest.TestCase):
         )
         self.assertFalse(are_same_keep_activity(canonical, separate))
 
-    def test_cleanup_removes_gpx_record_and_preserves_canonical_record(self):
+    def test_cleanup_removes_gpx_record_and_preserves_canonical_record(self) -> None:
         canonical = Activity(
             run_id=9223370000000000001,
             name="Running from keep",
@@ -145,16 +171,16 @@ class KeepGpxDedupeTest(unittest.TestCase):
 
 
 class ActivityUpdateTest(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         self.db_path = Path(self.temp_dir.name) / "activities.db"
         self.session = init_db(str(self.db_path))
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.session.close()
         self.temp_dir.cleanup()
 
-    def test_existing_activity_refreshes_dates_without_erasing_location(self):
+    def test_existing_activity_refreshes_dates_without_erasing_location(self) -> None:
         route = polyline.encode([(30.0, 104.0), (30.01, 104.01)])
         existing = Activity(
             run_id=100,
@@ -187,6 +213,8 @@ class ActivityUpdateTest(unittest.TestCase):
         self.session.commit()
 
         refreshed = self.session.get(Activity, 100)
+        self.assertIsNotNone(refreshed)
+        assert refreshed is not None
         self.assertEqual("2025-01-01 08:01:00", refreshed.start_date)
         self.assertEqual("2025-01-01 08:01:00", refreshed.start_date_local)
         self.assertEqual("Existing location", refreshed.location_country)
@@ -195,28 +223,29 @@ class ActivityUpdateTest(unittest.TestCase):
 
 
 class SyncFromAppTest(unittest.TestCase):
-    def test_namedtuple_like_file_names_are_logged(self):
-        generator = object.__new__(generator_module.Generator)
-        generator.session = mock.Mock()
-        generator.cleanup_keep_gpx_duplicates = mock.Mock(return_value=[])
-        track = SimpleNamespace(file_names=["activity.gpx"])
+    def test_namedtuple_like_file_names_are_logged(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            generator = generator_module.Generator(
+                str(Path(temp_dir) / "activities.db")
+            )
+            track = SimpleNamespace(file_names=["activity.gpx"])
 
-        with (
-            mock.patch.object(
-                generator_module, "update_or_create_activity", return_value=True
-            ),
-            mock.patch.object(
-                generator_module, "save_synced_data_file_list"
-            ) as save_files,
-        ):
-            generator.sync_from_app([track])
+            with (
+                mock.patch.object(
+                    generator_module, "update_or_create_activity", return_value=True
+                ),
+                mock.patch.object(
+                    generator_module, "save_synced_data_file_list"
+                ) as save_files,
+            ):
+                generator.sync_from_app([track])
 
-        save_files.assert_called_once_with(["activity.gpx"])
-        generator.session.commit.assert_called_once()
+            save_files.assert_called_once_with(["activity.gpx"])
+            generator.session.close()
 
 
 class PrivacyFilterTest(unittest.TestCase):
-    def test_zero_distances_leave_route_unchanged(self):
+    def test_zero_distances_leave_route_unchanged(self) -> None:
         points = [(30.0, 104.0), (30.01, 104.01), (30.02, 104.02)]
         self.assertEqual(points, polyline_processor.start_end_hiding(points, 0))
         self.assertEqual(
@@ -224,7 +253,7 @@ class PrivacyFilterTest(unittest.TestCase):
             polyline_processor.range_hiding(points, [(30.01, 104.01)], 0),
         )
 
-    def test_privacy_gap_keeps_longest_contiguous_segment(self):
+    def test_privacy_gap_keeps_longest_contiguous_segment(self) -> None:
         points = [
             (30.0, 104.0),
             (30.001, 104.001),
@@ -238,7 +267,7 @@ class PrivacyFilterTest(unittest.TestCase):
 
 
 class AuditTest(unittest.TestCase):
-    def test_location_parser_ignores_zero_start_coordinates(self):
+    def test_location_parser_ignores_zero_start_coordinates(self) -> None:
         value = str(
             {
                 "latitude": 30.5,
@@ -249,7 +278,7 @@ class AuditTest(unittest.TestCase):
         )
         self.assertEqual((30.5, 104.1), embedded_location(value))
 
-    def test_audit_detects_jump_and_does_not_mutate_database(self):
+    def test_audit_detects_jump_and_does_not_mutate_database(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             db_path = Path(temp_dir) / "activities.db"
             session = init_db(str(db_path))

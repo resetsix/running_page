@@ -74,8 +74,8 @@ const supportsMapboxLanguageStyle = (
     const url = source.url;
     return Boolean(
       url &&
-      (url.includes('mapbox.mapbox-streets-v8') ||
-        /mapbox-streets-v[1-9][1-9]/.test(url))
+        (url.includes('mapbox.mapbox-streets-v8') ||
+          /mapbox-streets-v[1-9][1-9]/.test(url))
     );
   });
 };

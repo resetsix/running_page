@@ -36,9 +36,7 @@ jobs:
         run: black . --diff --color && black . --check
 
       - name: Lint with Ruff
-        run: |
-          pip install ruff
-          ruff check .
+        run: ruff check .
 
   node_lint_and_test:
     runs-on: ubuntu-latest
@@ -69,4 +67,5 @@ jobs:
           pnpm run check
           pnpm run lint
           pnpm run typecheck
+          pnpm run pyright
           pnpm run build

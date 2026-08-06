@@ -6,11 +6,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-import polyline
-
 import generator as generator_module
-from generator.db import Activity
 import gpxtrackposter.track as track_module
+import polyline
+from generator.db import Activity
 from repair_route_regression import (
     TARGET_SPIKE_BLOCK,
     elevation_gain,

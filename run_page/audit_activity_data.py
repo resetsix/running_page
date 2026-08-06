@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Audit activity routes and metadata without modifying source data."""
 
 from __future__ import annotations
@@ -8,10 +7,10 @@ import ast
 import datetime as dt
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any, cast
 from xml.etree import ElementTree as ET
 
 import polyline
-
 from config import GPX_FOLDER, SQL_FILE
 from generator.db import (
     Activity,
@@ -72,16 +71,21 @@ def embedded_location(value: str | None) -> tuple[float, float] | None:
     if not value or not value.lstrip().startswith("{"):
         return None
     try:
-        parsed = ast.literal_eval(value)
+        parsed_value: object = ast.literal_eval(value)
     except (SyntaxError, ValueError):
         return None
-    if not isinstance(parsed, dict):
+    if not isinstance(parsed_value, dict):
         return None
+    parsed = cast(dict[str, object], parsed_value)
     candidates = (
         (parsed.get("startLatitude"), parsed.get("startLongitude")),
         (parsed.get("latitude"), parsed.get("longitude")),
     )
     for latitude, longitude in candidates:
+        if not isinstance(latitude, (int, float, str)) or not isinstance(
+            longitude, (int, float, str)
+        ):
+            continue
         try:
             point = float(latitude), float(longitude)
         except (TypeError, ValueError):
@@ -97,7 +101,8 @@ def audit_database(db_path: Path) -> AuditResult:
     try:
         activities = session.query(Activity).order_by(Activity.start_date_local).all()
         result.activity_count = len(activities)
-        for activity in activities:
+        for db_activity in activities:
+            activity = cast(Any, db_activity)
             run_id = str(activity.run_id)
             date = str(activity.start_date_local or "")[:10]
             route_length, max_jump, centroid = route_metrics(activity.summary_polyline)
@@ -150,7 +155,8 @@ def audit_database(db_path: Path) -> AuditResult:
                     )
                 )
 
-        for activity in activities:
+        for db_activity in activities:
+            activity = cast(Any, db_activity)
             if not is_gpx_from_keep_activity(activity):
                 continue
             if _find_keep_duplicate_matches(session, activity, "keep"):

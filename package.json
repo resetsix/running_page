@@ -38,6 +38,7 @@
     "actions:ensure-sync-active": "node scripts/ensure-run-data-sync-active.mjs",
     "rename": "node scripts/rename.mjs",
     "build": "vite build",
+    "pyright": "pyright",
     "typecheck": "tsc --noEmit",
     "develop": "vite dev",
     "dev": "vite dev",
@@ -45,7 +46,7 @@
     "lint": "eslint src --ext .ts,.tsx --fix",
     "check": "prettier --check \"src/main.tsx\" \"src/**/*.{css,module.css,json,ts,tsx}\" \"*.{yaml,json,ts}\"",
     "format": "prettier --write \"src/main.tsx\" \"src/**/*.{css,module.css,json,ts,tsx}\" \"*.{yaml,json,ts}\"",
-    "ci": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run build"
+    "ci": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run pyright && pnpm run build"
   },
   "engineStrict": true,
   "browserslist": "defaults, not ie 11",
@@ -76,6 +77,7 @@
     "globals": "^16.3.0",
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.13",
+    "pyright": "^1.1.411",
     "tailwindcss": "^4.1.10",
     "typescript": "^5.2.2"
   },

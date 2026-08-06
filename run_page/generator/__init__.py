@@ -6,12 +6,11 @@ import sys
 import arrow
 import polyline as polyline_codec
 import stravalib
-from gpxtrackposter import track_loader
-from sqlalchemy import func
-
 from env_utils import env_bool
+from gpxtrackposter import track_loader
 from hidden_activity_dates import is_hidden_activity_date
 from polyline_processor import filter_out
+from sqlalchemy import func
 from synced_data_file_logger import save_synced_data_file_list
 
 from .db import (

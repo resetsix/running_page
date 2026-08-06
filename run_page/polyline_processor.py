@@ -1,8 +1,12 @@
-from typing import List, Tuple
-import polyline
 import os
 import warnings
+from collections.abc import Sequence
+from typing import TypeAlias
+
+import polyline
 from haversine import haversine
+
+Coordinate: TypeAlias = tuple[float, float]
 
 # Initialize IGNORE_POLYLINE with graceful error handling
 IGNORE_POLYLINE = []
@@ -47,41 +51,45 @@ except ValueError:
 
 
 def point_distance_in_range(
-    point: Tuple[float], center_point: Tuple[float], distance: int
+    point: Coordinate, center_point: Coordinate, distance: float
 ) -> bool:
     return haversine(point, center_point) < distance
 
 
 def point_in_list_points_range(
-    point: Tuple[float], points: List[Tuple[float]], distance: int
+    point: Coordinate, points: Sequence[Coordinate], distance: float
 ) -> bool:
     # Use generator expression instead of list comprehension for better performance
     return any(point_distance_in_range(point, p, distance) for p in points)
 
 
 def range_hiding(
-    polyline: List[Tuple[float]], points: List[Tuple[float]], distance: int
-) -> List[Tuple[float]]:
+    polyline: Sequence[Coordinate],
+    points: Sequence[Coordinate],
+    distance: float,
+) -> list[Coordinate]:
     segments = range_hiding_segments(polyline, points, distance)
     if not segments:
         return []
     return max(segments, key=_segment_length)
 
 
-def _segment_length(segment: List[Tuple[float]]) -> float:
+def _segment_length(segment: Sequence[Coordinate]) -> float:
     return sum(haversine(left, right) for left, right in zip(segment, segment[1:]))
 
 
 def range_hiding_segments(
-    polyline: List[Tuple[float]], points: List[Tuple[float]], distance: int
-) -> List[List[Tuple[float]]]:
+    polyline: Sequence[Coordinate],
+    points: Sequence[Coordinate],
+    distance: float,
+) -> list[list[Coordinate]]:
     """Return retained contiguous route segments without bridging privacy gaps."""
 
     if distance <= 0 or not points:
         return [list(polyline)] if polyline else []
 
-    segments: List[List[Tuple[float]]] = []
-    current: List[Tuple[float]] = []
+    segments: list[list[Coordinate]] = []
+    current: list[Coordinate] = []
     for point in polyline:
         if point_in_list_points_range(point, points, distance):
             if len(current) >= 2:
@@ -95,7 +103,9 @@ def range_hiding_segments(
     return segments
 
 
-def start_end_hiding(polyline: List[Tuple[float]], distance: int) -> List[Tuple[float]]:
+def start_end_hiding(
+    polyline: Sequence[Coordinate], distance: float
+) -> list[Coordinate]:
     if distance <= 0:
         return list(polyline)
 
@@ -118,7 +128,7 @@ def start_end_hiding(polyline: List[Tuple[float]], distance: int) -> List[Tuple[
     if start_index >= end_index:
         return []
 
-    return polyline[start_index : end_index + 1]
+    return list(polyline[start_index : end_index + 1])
 
 
 def filter_out(polyline_str):
