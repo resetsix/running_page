@@ -9,7 +9,10 @@ interface RoutePreviewProps {
   className?: string;
 }
 
-const RoutePreview: React.FC = ({ activities, className }) => {
+const RoutePreview: React.FC<RoutePreviewProps> = ({
+  activities,
+  className,
+}) => {
   const labels = useLabels();
   // Filter activities that have polyline data
   const activitiesWithRoutes = activities.filter(
@@ -25,7 +28,11 @@ const RoutePreview: React.FC = ({ activities, className }) => {
   }
 
   // Get all route coordinates
-  const allCoordinates: Array = activitiesWithRoutes.map((activity, index) => {
+  const allCoordinates: Array<{
+    path: [number, number][];
+    color: string;
+    indoor: boolean;
+  }> = activitiesWithRoutes.map((activity, index) => {
     const path = pathForRun(activity);
     const indoor =
       activity.subtype === 'indoor' || activity.subtype === 'treadmill';

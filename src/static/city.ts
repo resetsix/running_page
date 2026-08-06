@@ -6,18 +6,19 @@ interface ICity {
 }
 
 // Country name patterns to standardized forms
-export const COUNTRY_STANDARDIZATION: ReadonlyArray = [
-  ['美利坚合众国', '美国'], // United States: long form → short form
-  ['奧地利', '奥地利'], // Austria: Traditional → Simplified Chinese
-  ['英国', '英国'], // United Kingdom
-  ['印度尼西亚', '印度尼西亚'], // Indonesia
-  ['韩国', '韩国'], // South Korea
-  ['斯里兰卡', '斯里兰卡'], // Sri Lanka
-  ['所罗门群岛', '所罗门群岛'], // Solomon Islands
-  ['拉脱维亚', '拉脱维亚'], // Latvia
-  ['爱沙尼亚', '爱沙尼亚'], // Estonia
-  ['澳大利亚', '澳大利亚'], // Australia
-];
+export const COUNTRY_STANDARDIZATION: ReadonlyArray<readonly [string, string]> =
+  [
+    ['美利坚合众国', '美国'], // United States: long form → short form
+    ['奧地利', '奥地利'], // Austria: Traditional → Simplified Chinese
+    ['英国', '英国'], // United Kingdom
+    ['印度尼西亚', '印度尼西亚'], // Indonesia
+    ['韩国', '韩国'], // South Korea
+    ['斯里兰卡', '斯里兰卡'], // Sri Lanka
+    ['所罗门群岛', '所罗门群岛'], // Solomon Islands
+    ['拉脱维亚', '拉脱维亚'], // Latvia
+    ['爱沙尼亚', '爱沙尼亚'], // Estonia
+    ['澳大利亚', '澳大利亚'], // Australia
+  ];
 
 export const chinaCities: ICity[] = [
   {

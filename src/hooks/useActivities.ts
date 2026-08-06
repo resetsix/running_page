@@ -31,14 +31,14 @@ const useActivities = () => {
   const runs = runningActivities;
 
   const processedData = useMemo(() => {
-    const cities: Record = {};
-    const runPeriod: Record = {};
-    const provinces: Set = new Set();
-    const countries: Set = new Set();
-    const runningYears: Set = new Set();
-    const allProvinces: Set = new Set();
-    const allCountries: Set = new Set();
-    const allYears: Set = new Set();
+    const cities: Record<string, number> = {};
+    const runPeriod: Record<string, number> = {};
+    const provinces = new Set<string>();
+    const countries = new Set<string>();
+    const runningYears = new Set<string>();
+    const allProvinces = new Set<string>();
+    const allCountries = new Set<string>();
+    const allYears = new Set<string>();
 
     activities.forEach((run) => {
       const location = locationForRun(run);

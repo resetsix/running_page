@@ -63,7 +63,10 @@ const MonthOfLifeSvg = (sportType: string, language: 'zh-CN' | 'en') => {
 };
 
 // Cache for year summary lazy components to prevent flickering
-const yearSummaryCache: Record = {};
+const yearSummaryCache: Record<
+  string,
+  React.LazyExoticComponent<SvgComponent>
+> = {};
 const getYearSummarySvg = (year: string, language: 'zh-CN' | 'en') => {
   const cacheKey = `${year}-${language}`;
   if (!yearSummaryCache[cacheKey]) {
@@ -132,7 +135,8 @@ type IntervalOption = {
 };
 
 // A row group contains multiple activity card data items that will be rendered in one virtualized row
-type RowGroup = Array;
+type ActivityListItem = { period: string; summary: ActivitySummary };
+type RowGroup = ActivityListItem[];
 
 const ChevronDownIcon = () => (
   <svg
@@ -380,7 +384,7 @@ const SportTypeIcon = ({ type }: { type: string }) => {
   }
 };
 
-const ActivityCardInner: React.FC = ({
+const ActivityCardInner: React.FC<ActivityCardProps> = ({
   period,
   summary,
   dailyDistances,

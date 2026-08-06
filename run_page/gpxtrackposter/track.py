@@ -14,6 +14,7 @@ import gpxpy as mod_gpxpy
 import lxml
 import polyline
 import s2sphere as s2
+from env_utils import env_bool
 from garmin_fit_sdk import Decoder, Stream
 from garmin_fit_sdk.util import FIT_EPOCH_S
 from polyline_processor import filter_out
@@ -26,7 +27,7 @@ from .utils import parse_datetime_to_local, get_normalized_sport_type
 start_point = namedtuple("start_point", "lat lon")
 run_map = namedtuple("polyline", "summary_polyline")
 
-IGNORE_BEFORE_SAVING = os.getenv("IGNORE_BEFORE_SAVING", False)
+IGNORE_BEFORE_SAVING = env_bool("IGNORE_BEFORE_SAVING")
 
 # Garmin stores all latitude and longitude values as 32-bit integer values.
 # This unit is called semicircle.

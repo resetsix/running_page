@@ -50,3 +50,6 @@ build-backend = "pdm.backend"
 
 [tool.pdm]
 distribution = true
+
+[tool.black]
+target-version = ["py312"]

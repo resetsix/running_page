@@ -1,7 +1,6 @@
 import * as mapboxPolyline from '@mapbox/polyline';
 import gcoord from 'gcoord';
 import { WebMercatorViewport } from '@math.gl/web-mercator';
-import { RPGeometry } from '@/static/run_countries';
 import { chinaCities } from '@/static/city';
 import {
   MAIN_COLOR,
@@ -21,17 +20,12 @@ import {
   TOTAL_FILTER_KEY,
 } from './const';
 import type { UIText } from './const';
-import {
-  FeatureCollection,
-  LineString,
-  Feature,
-  GeoJsonProperties,
-} from 'geojson';
+import { FeatureCollection, Feature } from 'geojson';
 import { getMapThemeFromCurrentTheme } from '@/hooks/useTheme';
 
 export type Coordinate = [number, number];
 
-export type RunIds = Array | [];
+export type RunIds = string[];
 
 // Check for units environment variable
 const IS_IMPERIAL = import.meta.env.VITE_USE_IMPERIAL === 'true';
@@ -41,7 +35,7 @@ export const DIST_UNIT = IS_IMPERIAL ? 'mi' : 'km'; // Label
 export const ELEV_UNIT = IS_IMPERIAL ? 'ft' : 'm'; // Label
 
 export interface Activity {
-  run_id: number;
+  run_id: string;
   name: string;
   distance: number;
   moving_time: string;
@@ -80,7 +74,7 @@ type LocalizedRunTitleKey =
   | 'swimming'
   | 'skiing';
 
-type RunTitleLabels = Pick;
+type RunTitleLabels = Pick<UIText, 'runTitles' | 'activityTypes' | 'cityNames'>;
 
 const titleForShow = (run: Activity): string => {
   const date = run.start_date_local.slice(0, 11);
@@ -177,16 +171,15 @@ const extractLocationField = (str: string, field: string): string => {
 };
 
 const cities = chinaCities.map((c) => c.name);
-const locationCache = new Map<number, ReturnType>();
-// what about oversea?
-const locationForRun = (
-  run: Activity
-): {
+type RunLocation = {
   country: string;
   province: string;
   city: string;
   coordinate: [number, number] | null;
-} => {
+};
+const locationCache = new Map<string, RunLocation>();
+// what about oversea?
+const locationForRun = (run: Activity): RunLocation => {
   if (locationCache.has(run.run_id)) {
     return locationCache.get(run.run_id)!;
   }
@@ -452,7 +445,7 @@ const geoJsonForRuns = (runs: Activity[]): FeatureCollection => ({
   }),
 });
 
-const geoJsonForMap = async (): Promise => {
+const geoJsonForMap = async (): Promise<FeatureCollection> => {
   const [{ chinaGeojson }, worldGeoJson] = await Promise.all([
     import('@/static/run_countries'),
     import('@surbowl/world-geo-json-zh/world.zh.json'),
@@ -703,7 +696,7 @@ const getBoundsForGeoData = (geoData: FeatureCollection): IViewState => {
   let points: Coordinate[] = [];
   // find first have data
   for (const f of features) {
-    if (f.geometry.coordinates.length) {
+    if (f.geometry.type === 'LineString' && f.geometry.coordinates.length) {
       points = f.geometry.coordinates as Coordinate[];
       break;
     }

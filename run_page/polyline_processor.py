@@ -62,14 +62,43 @@ def point_in_list_points_range(
 def range_hiding(
     polyline: List[Tuple[float]], points: List[Tuple[float]], distance: int
 ) -> List[Tuple[float]]:
-    return [
-        point
-        for point in polyline
-        if not point_in_list_points_range(point, points, distance)
-    ]
+    segments = range_hiding_segments(polyline, points, distance)
+    if not segments:
+        return []
+    return max(segments, key=_segment_length)
+
+
+def _segment_length(segment: List[Tuple[float]]) -> float:
+    return sum(haversine(left, right) for left, right in zip(segment, segment[1:]))
+
+
+def range_hiding_segments(
+    polyline: List[Tuple[float]], points: List[Tuple[float]], distance: int
+) -> List[List[Tuple[float]]]:
+    """Return retained contiguous route segments without bridging privacy gaps."""
+
+    if distance <= 0 or not points:
+        return [list(polyline)] if polyline else []
+
+    segments: List[List[Tuple[float]]] = []
+    current: List[Tuple[float]] = []
+    for point in polyline:
+        if point_in_list_points_range(point, points, distance):
+            if len(current) >= 2:
+                segments.append(current)
+            current = []
+            continue
+        current.append(point)
+
+    if len(current) >= 2:
+        segments.append(current)
+    return segments
 
 
 def start_end_hiding(polyline: List[Tuple[float]], distance: int) -> List[Tuple[float]]:
+    if distance <= 0:
+        return list(polyline)
+
     start_index, end_index = 0, len(polyline) - 1
 
     starting_distance = 0

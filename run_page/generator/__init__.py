@@ -9,6 +9,7 @@ import stravalib
 from gpxtrackposter import track_loader
 from sqlalchemy import func
 
+from env_utils import env_bool
 from hidden_activity_dates import is_hidden_activity_date
 from polyline_processor import filter_out
 from synced_data_file_logger import save_synced_data_file_list
@@ -20,7 +21,7 @@ from .db import (
     update_or_create_activity,
 )
 
-IGNORE_BEFORE_SAVING = os.getenv("IGNORE_BEFORE_SAVING", False)
+IGNORE_BEFORE_SAVING = env_bool("IGNORE_BEFORE_SAVING")
 
 
 # Bounding box spread threshold (degrees) for indoor activity detection.
@@ -237,9 +238,12 @@ class Generator:
                 sys.stdout.write("+")
             else:
                 sys.stdout.write(".")
-            if "file_names" in t:
+            if hasattr(t, "file_names") and t.file_names:
                 synced_files.extend(t.file_names)
             sys.stdout.flush()
+
+        if synced_files:
+            save_synced_data_file_list(synced_files)
 
         removed_duplicates = self.cleanup_keep_gpx_duplicates(commit=False)
         if removed_duplicates:

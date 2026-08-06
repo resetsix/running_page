@@ -137,7 +137,7 @@ export class RouteAnimator {
   private duration: number;
   private startTime: number;
   private state: RouteAnimationState;
-  private config: Required;
+  private config: Required<RouteAnimationConfig>;
   private animationFrameId: number | null = null;
 
   constructor(

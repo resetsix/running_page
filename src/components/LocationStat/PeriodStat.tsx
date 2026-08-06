@@ -3,7 +3,7 @@ import useActivities from '@/hooks/useActivities';
 import useLabels from '@/hooks/useLabels';
 import { getLocalizedRunTitle } from '@/utils/utils';
 
-const PERIOD_TIME_RANGES: Record = {
+const PERIOD_TIME_RANGES: Record<string, string> = {
   late_night_run: '00:00-04:59',
   morning_run: '05:00-08:59',
   forenoon_run: '09:00-10:59',

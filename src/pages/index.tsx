@@ -21,7 +21,6 @@ import {
   geoJsonForRuns,
   getBoundsForGeoData,
   getLocalizedRunTitle,
-  scrollToMap,
   sortDateFunc,
   titleForShow,
   RunIds,
@@ -50,20 +49,20 @@ const Index = () => {
   }>({ item: thisYear, type: 'year', func: filterYearRuns });
 
   // State to track if we're showing a single run from URL hash
-  const [singleRunId, setSingleRunId] = useState<number | null>(null);
+  const [singleRunId, setSingleRunId] = useState<string | null>(null);
 
   // Animation trigger for single runs - increment this to force animation replay
   const [animationTrigger, setAnimationTrigger] = useState(0);
 
-  const selectedRunIdRef = useRef<number | null>(null);
+  const selectedRunIdRef = useRef<string | null>(null);
   const selectedRunDateRef = useRef<string | null>(null);
 
   // Parse URL hash on mount to check for run ID
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash && hash.startsWith('run_')) {
-      const runId = parseInt(hash.replace('run_', ''), 10);
-      if (!isNaN(runId)) {
+      const runId = hash.slice('run_'.length);
+      if (/^\d+$/.test(runId)) {
         setSingleRunId(runId);
       }
     }
@@ -72,8 +71,8 @@ const Index = () => {
     const handleHashChange = () => {
       const newHash = window.location.hash.replace('#', '');
       if (newHash && newHash.startsWith('run_')) {
-        const runId = parseInt(newHash.replace('run_', ''), 10);
-        if (!isNaN(runId)) {
+        const runId = newHash.slice('run_'.length);
+        if (/^\d+$/.test(runId)) {
           setSingleRunId(runId);
         }
       } else {
@@ -369,8 +368,8 @@ const Index = () => {
         const descEl = target.querySelector('desc');
         if (descEl) {
           // If the runId exists in the <desc> element, it means that a running route has been clicked.
-          const runId = Number(descEl.innerHTML);
-          if (!runId) {
+          const runId = descEl.textContent?.trim() ?? '';
+          if (!/^\d+$/.test(runId)) {
             return;
           }
           if (selectedRunIdRef.current === runId) {

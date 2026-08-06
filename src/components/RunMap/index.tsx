@@ -41,12 +41,11 @@ import RunMarker from './RunMarker';
 import RunMapButtons from './RunMapButtons';
 import styles from './style.module.css';
 import { FeatureCollection } from 'geojson';
-import { RPGeometry } from '@/static/run_countries';
 import './mapbox.css';
 import LightsControl from '@/components/RunMap/LightsControl';
 import { useMapTheme, useThemeChangeCounter } from '@/hooks/useTheme';
 
-type MapInstance = ReturnType;
+type MapInstance = ReturnType<MapRef['getMap']>;
 type MapStyleDataEvent = {
   dataType?: string;
 };
@@ -54,7 +53,14 @@ type MapStyleSource = {
   url?: string;
 };
 type MapStyleWithSources = {
-  sources?: Record;
+  sources?: Record<string, MapStyleSource>;
+};
+
+const lineCoordinates = (geoData: FeatureCollection): Coordinate[] => {
+  const geometry = geoData.features[0]?.geometry;
+  return geometry?.type === 'LineString'
+    ? (geometry.coordinates as Coordinate[])
+    : [];
 };
 
 const supportsMapboxLanguageStyle = (
@@ -68,8 +74,8 @@ const supportsMapboxLanguageStyle = (
     const url = source.url;
     return Boolean(
       url &&
-        (url.includes('mapbox.mapbox-streets-v8') ||
-          /mapbox-streets-v[1-9][1-9]/.test(url))
+      (url.includes('mapbox.mapbox-streets-v8') ||
+        /mapbox-streets-v[1-9][1-9]/.test(url))
     );
   });
 };
@@ -356,9 +362,8 @@ const RunMap = ({
   // Memoize expensive calculations
   const { isSingleRun, startLon, startLat, endLon, endLat, isIndoorRun } =
     useMemo(() => {
-      const isSingle =
-        geoData.features.length === 1 &&
-        geoData.features[0].geometry.coordinates.length;
+      const points = lineCoordinates(geoData);
+      const isSingle = geoData.features.length === 1 && points.length > 0;
 
       let startLon = 0;
       let startLat = 0;
@@ -367,7 +372,6 @@ const RunMap = ({
       let isIndoor = false;
 
       if (isSingle) {
-        const points = geoData.features[0].geometry.coordinates as Coordinate[];
         [startLon, startLat] = points[0];
         [endLon, endLat] = points[points.length - 1];
         isIndoor = geoData.features[0].properties?.indoor === true;
@@ -428,7 +432,7 @@ const RunMap = ({
   // start route animation using RouteAnimator
   const startRouteAnimation = useCallback(() => {
     if (!isSingleRun) return;
-    const points = geoData.features[0].geometry.coordinates as Coordinate[];
+    const points = lineCoordinates(geoData);
     if (!points || points.length < 2) return;
 
     // Stop any existing animation
@@ -452,7 +456,7 @@ const RunMap = ({
   // autoplay once when single run changes
   useEffect(() => {
     if (!isSingleRun) return;
-    const pts = geoData.features[0].geometry.coordinates as Coordinate[];
+    const pts = lineCoordinates(geoData);
     const key = `${pts.length}-${pts[0]?.join(',')}-${pts[pts.length - 1]?.join(',')}`;
     if (key && key !== lastRouteKeyRef.current) {
       lastRouteKeyRef.current = key;
