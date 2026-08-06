@@ -303,11 +303,11 @@ class Generator:
         """Replace indoor activity polylines with routes derived from the
         nearest previous outdoor activity.
 
-        Indoor activities are identified by a multi-strategy approach:
-        1. Subtype match: known indoor subtypes from data sources
-           (Garmin FIT "treadmill", Strava/Keep "VirtualRun", etc.)
-        2. No GPS data: activity has distance but empty polyline
-        3. Tiny GPS spread: bounding box < ~10 m (noisy indoor GPS)
+        Indoor activities are identified only by explicit subtypes from data
+        sources (Garmin FIT "treadmill", Strava/Keep "VirtualRun", etc.).
+        Missing or low-spread GPS data is not sufficient evidence that an
+        activity happened indoors.
+
         For each indoor activity we:
         1. Take the most recent preceding outdoor route as reference.
         2. Truncate or extend it to match the indoor run's distance.
@@ -323,13 +323,11 @@ class Generator:
             "virtualrun",  # Strava / Keep indoor running
             "virtual_run",  # alternate form
         }
-        # ~10 m in degrees (0.0001° ≈ 11 m)
-        TINY_SPREAD_THRESHOLD = 0.0001
 
         # Classify each activity as indoor or outdoor and cache decoded coords
         classified = []  # (dict, is_indoor, decoded_coords_or_None)
         for a in activity_list:
-            subtype = (a.get("subtype") or "").lower()
+            subtype = str(a.get("subtype") or "").strip().lower()
             is_indoor = subtype in INDOOR_SUBTYPES
 
             poly = a.get("summary_polyline") or ""
@@ -341,18 +339,6 @@ class Generator:
                         coords = None
                 except Exception:
                     coords = None
-
-            # Strategy 2: no GPS data but has distance → indoor
-            if not is_indoor and coords is None and a.get("distance", 0) > 100:
-                is_indoor = True
-
-            # Strategy 3: tiny GPS spread → noisy indoor GPS
-            if not is_indoor and coords and len(coords) >= 2:
-                lats = [c[0] for c in coords]
-                lngs = [c[1] for c in coords]
-                spread = max(max(lats) - min(lats), max(lngs) - min(lngs))
-                if spread < TINY_SPREAD_THRESHOLD:
-                    is_indoor = True
 
             classified.append((a, is_indoor, coords))
 

@@ -221,6 +221,42 @@ class ActivityUpdateTest(unittest.TestCase):
         self.assertEqual(42.0, refreshed.elevation_gain)
         self.assertEqual("100", refreshed.to_dict()["run_id"])
 
+    def test_refresh_clears_synthetic_route_when_keep_still_has_no_gps(self) -> None:
+        synthetic_route = polyline.encode([(30.0, 104.0), (30.01, 104.01)])
+        existing = Activity(
+            run_id=200,
+            name="Run from keep",
+            distance=3_000,
+            moving_time=datetime.timedelta(minutes=30),
+            elapsed_time=datetime.timedelta(minutes=30),
+            type="Run",
+            subtype="indoor",
+            start_date="2026-06-08 12:50:20",
+            start_date_local="2026-06-08 20:50:20",
+            location_country="Existing location",
+            summary_polyline=synthetic_route,
+            average_speed=1.7,
+            elevation_gain=0.0,
+        )
+        self.session.add(existing)
+        self.session.commit()
+        incoming = activity_stub(
+            run_id=200,
+            name="Run from keep",
+            start="2026-06-08 20:50:20",
+            route="",
+            distance=3_000,
+        )
+
+        update_or_create_activity(self.session, incoming)
+        self.session.commit()
+
+        refreshed = self.session.get(Activity, 200)
+        self.assertIsNotNone(refreshed)
+        assert refreshed is not None
+        self.assertEqual("Run", refreshed.subtype)
+        self.assertEqual("", refreshed.summary_polyline)
+
 
 class SyncFromAppTest(unittest.TestCase):
     def test_namedtuple_like_file_names_are_logged(self) -> None:

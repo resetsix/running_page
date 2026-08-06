@@ -40,6 +40,24 @@ KEEP2TCX = {
     "mountaineering": "Hiking",
 }
 
+
+def parse_refresh_ids(value):
+    """Parse a comma-separated list of numeric Keep activity IDs."""
+
+    if not value:
+        return set()
+
+    refresh_ids = set()
+    for item in value.split(","):
+        keep_id = item.strip()
+        if not keep_id:
+            continue
+        if not keep_id.isdigit():
+            raise ValueError(f"invalid Keep activity ID: {keep_id}")
+        refresh_ids.add(keep_id)
+    return refresh_ids
+
+
 # need to test
 LOGIN_API = "https://api.gotokeep.com/v1.1/users/login"
 RUN_DATA_API = "https://api.gotokeep.com/pd/v3/stats/detail?dateUnit=all&type={sport_type}&lastDate={last_date}"
@@ -217,6 +235,7 @@ def get_all_keep_tracks(
     keep_sports_data_api,
     with_gpx=False,
     with_tcx=False,
+    refresh_ids=None,
 ):
     if with_gpx and not os.path.exists(GPX_FOLDER):
         os.mkdir(GPX_FOLDER)
@@ -225,32 +244,50 @@ def get_all_keep_tracks(
     s = requests.Session()
     s, headers = login(s, email, password)
     tracks = []
+    refresh_ids = set(refresh_ids or [])
+    selected_runs = []
+    found_refresh_ids = set()
+
     for api in keep_sports_data_api:
         runs = get_to_download_runs_ids(s, headers, api)
-        runs = [run for run in runs if run.split("_")[1] not in old_tracks_ids]
+        if refresh_ids:
+            runs = [run for run in runs if run.split("_")[1] in refresh_ids]
+            found_refresh_ids.update(run.split("_")[1] for run in runs)
+        else:
+            runs = [run for run in runs if run.split("_")[1] not in old_tracks_ids]
         print(f"{len(runs)} new keep {api} data to generate")
-        old_gpx_ids = []
-        if with_gpx:
-            old_gpx_ids = os.listdir(GPX_FOLDER)
-            old_gpx_ids = [
-                i.split(".")[0] for i in old_gpx_ids if not i.startswith(".")
-            ]
-        old_tcx_ids = []
-        if with_tcx:
-            old_tcx_ids = os.listdir(TCX_FOLDER)
-            old_tcx_ids = [
-                i.split(".")[0] for i in old_tcx_ids if not i.startswith(".")
-            ]
-        for run in runs:
-            print(f"parsing keep id {run}")
-            try:
-                run_data = get_single_run_data(s, headers, run, api)
-                track = parse_raw_data_to_nametuple(
-                    run_data, old_gpx_ids, old_tcx_ids, with_gpx, with_tcx
-                )
-                tracks.append(track)
-            except Exception as e:
-                print(f"Something wrong paring keep id {run}: " + str(e))
+        selected_runs.extend((api, run) for run in runs)
+
+    if refresh_ids:
+        missing_ids = sorted(refresh_ids - found_refresh_ids)
+        if missing_ids:
+            raise ValueError(
+                "requested Keep activities were not found: " + ", ".join(missing_ids)
+            )
+
+    old_gpx_ids = []
+    if with_gpx:
+        old_gpx_ids = os.listdir(GPX_FOLDER)
+        old_gpx_ids = [i.split(".")[0] for i in old_gpx_ids if not i.startswith(".")]
+    old_tcx_ids = []
+    if with_tcx:
+        old_tcx_ids = os.listdir(TCX_FOLDER)
+        old_tcx_ids = [i.split(".")[0] for i in old_tcx_ids if not i.startswith(".")]
+
+    for api, run in selected_runs:
+        print(f"parsing keep id {run}")
+        try:
+            run_data = get_single_run_data(s, headers, run, api)
+            track = parse_raw_data_to_nametuple(
+                run_data, old_gpx_ids, old_tcx_ids, with_gpx, with_tcx
+            )
+            if track is None:
+                raise ValueError(f"Keep activity {run} could not be parsed")
+            tracks.append(track)
+        except Exception as e:
+            if refresh_ids:
+                raise RuntimeError(f"failed to refresh Keep activity {run}") from e
+            print(f"Something wrong paring keep id {run}: " + str(e))
     return tracks
 
 
@@ -493,12 +530,23 @@ def download_keep_tcx(tcx_data, keep_id):
 
 
 def run_keep_sync(
-    email, password, keep_sports_data_api, with_gpx=False, with_tcx=False
+    email,
+    password,
+    keep_sports_data_api,
+    with_gpx=False,
+    with_tcx=False,
+    refresh_ids=None,
 ):
     generator = Generator(SQL_FILE)
     old_tracks_ids = generator.get_old_tracks_ids()
     new_tracks = get_all_keep_tracks(
-        email, password, old_tracks_ids, keep_sports_data_api, with_gpx, with_tcx
+        email,
+        password,
+        old_tracks_ids,
+        keep_sports_data_api,
+        with_gpx,
+        with_tcx,
+        refresh_ids,
     )
     generator.sync_from_app(new_tracks)
 
@@ -530,6 +578,14 @@ if __name__ == "__main__":
         action="store_true",
         help="get all keep data to tcx and download",
     )
+    parser.add_argument(
+        "--refresh-ids",
+        default="",
+        help=(
+            "comma-separated Keep activity IDs to refresh even if they already "
+            "exist; when set, only these activities are synced"
+        ),
+    )
     options = parser.parse_args()
     for _tpye in options.sync_types:
         assert (
@@ -541,4 +597,5 @@ if __name__ == "__main__":
         options.sync_types,
         options.with_gpx,
         options.with_tcx,
+        parse_refresh_ids(options.refresh_ids),
     )

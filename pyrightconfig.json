@@ -4,7 +4,8 @@
     "run_page/env_utils.py",
     "run_page/polyline_processor.py",
     "tests/test_data_integrity.py",
-    "tests/test_generator_load.py"
+    "tests/test_generator_load.py",
+    "tests/test_keep_refresh.py"
   ],
   "extraPaths": ["run_page"],
   "pythonVersion": "3.12",

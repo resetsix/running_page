@@ -105,6 +105,54 @@ class GeneratorLoadPurityTest(unittest.TestCase):
         self.assertTrue(indoor_export["summary_polyline"])
         self.assertEqual(("", "VirtualRun"), self.read_route_fields(2))
 
+    def test_missing_gps_does_not_imply_indoor_activity(self):
+        outdoor_route = polyline.encode(
+            [(30.0, 104.0), (30.005, 104.005), (30.0, 104.0)]
+        )
+        self.add_activity(1, "2026-01-01 08:00:00", outdoor_route)
+        self.add_activity(
+            2,
+            "2026-01-02 08:00:00",
+            "",
+            subtype="Run",
+            distance=3_000.0,
+        )
+
+        with (
+            mock.patch.object(generator_module, "IGNORE_BEFORE_SAVING", False),
+            mock.patch.object(
+                generator_module, "filter_out", side_effect=lambda value: value
+            ),
+        ):
+            exported = self.generator.load()
+
+        route_less_export = exported[1]
+        self.assertEqual("Run", route_less_export["subtype"])
+        self.assertEqual("", route_less_export["summary_polyline"])
+        self.assertEqual(("", "Run"), self.read_route_fields(2))
+
+    def test_tiny_gps_spread_does_not_imply_indoor_activity(self):
+        tiny_route = polyline.encode([(30.0, 104.0), (30.00001, 104.00001)])
+        self.add_activity(
+            1,
+            "2026-01-01 08:00:00",
+            tiny_route,
+            subtype="Run",
+            distance=1_000.0,
+        )
+
+        with (
+            mock.patch.object(generator_module, "IGNORE_BEFORE_SAVING", False),
+            mock.patch.object(
+                generator_module, "filter_out", side_effect=lambda value: value
+            ),
+        ):
+            exported = self.generator.load()
+
+        self.assertEqual("Run", exported[0]["subtype"])
+        self.assertEqual(tiny_route, exported[0]["summary_polyline"])
+        self.assertEqual((tiny_route, "Run"), self.read_route_fields(1))
+
 
 class TargetGpxRepairTest(unittest.TestCase):
     def test_known_elevation_and_gps_spike_are_removed(self):

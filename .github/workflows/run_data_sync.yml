@@ -2,6 +2,12 @@ name: Run Data Sync
 
 on:
   workflow_dispatch:
+    inputs:
+      keep_refresh_ids:
+        description: 'Comma-separated Keep activity IDs to refresh'
+        required: false
+        default: ''
+        type: string
   schedule:
     # Runs daily at 00:17 UTC / 08:17 Asia/Shanghai.
     # Avoid the top of the hour, where GitHub may delay or drop scheduled runs.
@@ -157,8 +163,13 @@ jobs:
         env:
           KEEP_MOBILE: ${{ secrets.KEEP_MOBILE }}
           KEEP_PASSWORD: ${{ secrets.KEEP_PASSWORD }}
+          KEEP_REFRESH_IDS: ${{ inputs.keep_refresh_ids }}
         run: |
-          python run_page/keep_sync.py "$KEEP_MOBILE" "$KEEP_PASSWORD" --with-gpx
+          if [ -n "$KEEP_REFRESH_IDS" ]; then
+            python run_page/keep_sync.py "$KEEP_MOBILE" "$KEEP_PASSWORD" --with-gpx --refresh-ids "$KEEP_REFRESH_IDS"
+          else
+            python run_page/keep_sync.py "$KEEP_MOBILE" "$KEEP_PASSWORD" --with-gpx
+          fi
 
       - name: Run sync Coros script
         if: env.RUN_TYPE == 'coros'
