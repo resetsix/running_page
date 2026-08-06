@@ -284,23 +284,14 @@ class Generator:
                 streak = 1
             activity.streak = streak  # type: ignore
             last_date = date
+            activity_data = activity.to_dict()
             if not IGNORE_BEFORE_SAVING:
-                activity.summary_polyline = filter_out(activity.summary_polyline)  # type: ignore
-            activity_list.append(activity.to_dict())
+                activity_data["summary_polyline"] = filter_out(
+                    activity.summary_polyline
+                )
+            activity_list.append(activity_data)
 
         activity_list = self._fix_indoor_locations(activity_list)
-
-        # Persist indoor subtype and virtual polyline back to DB so SVG generation can pick it up
-        for a in activity_list:
-            if a.get("subtype") == "indoor":
-                db_activity = self.session.query(Activity).get(a["run_id"])
-                if db_activity:
-                    if db_activity.subtype != "indoor":
-                        db_activity.subtype = "indoor"
-                    poly = a.get("summary_polyline", "")
-                    if poly and not db_activity.summary_polyline:
-                        db_activity.summary_polyline = poly
-        self.session.commit()
 
         return activity_list
 
