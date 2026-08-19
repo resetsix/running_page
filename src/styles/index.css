@@ -112,6 +112,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-brand);
+    overscroll-behavior-y: none;
     transition:
       background-color 0.1s ease,
       color 0.1s ease;
@@ -131,6 +132,15 @@ body {
   text-rendering: optimizeLegibility;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
+}
+
+.year-scroll-region {
+  overscroll-behavior-y: none;
+  scrollbar-width: none;
+}
+
+.year-scroll-region::-webkit-scrollbar {
+  display: none;
 }
 
 iframe {

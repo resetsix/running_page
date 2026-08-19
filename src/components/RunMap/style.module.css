@@ -6,19 +6,27 @@
   padding: 0;
 }
 
+.yearToolbar {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.yearToolbar::-webkit-scrollbar {
+  display: none;
+}
+
 .buttons {
   font-family: var(--font-mono);
-  position: absolute;
-  top: 0px;
-  left: 10px;
   margin: 0 auto;
   padding-right: 70px;
+  white-space: nowrap;
 }
 
 @media only screen and (max-width: 768px) {
   .buttons {
     padding-right: 10px;
-    flex-wrap: wrap;
+    transform: translateX(10px);
   }
 }
 
@@ -56,8 +64,8 @@
 
 @media only screen and (max-width: 768px) {
   .runTitle {
-    width: calc(100% - 40px);
-    left: 20px;
+    width: calc(100% - 140px);
+    left: 120px;
     font-size: 0.8rem;
     bottom: 5px;
   }

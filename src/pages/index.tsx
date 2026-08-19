@@ -1,12 +1,24 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import {
+  Suspense,
+  startTransition,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+  type UIEvent,
+} from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import Layout from '@/components/Layout';
 import LocationStat from '@/components/LocationStat';
 import RunMap from '@/components/RunMap';
+import RunMapButtons from '@/components/RunMap/RunMapButtons';
 import RunTable from '@/components/RunTable';
-import SVGStat from '@/components/SVGStat';
+import SVGStat, { preloadTotalStats } from '@/components/SVGStat';
 import YearsStat from '@/components/YearsStat';
 import useActivities from '@/hooks/useActivities';
+import { useLanguage } from '@/hooks/useLanguage';
 import useLabels from '@/hooks/useLabels';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
 import { useInterval } from '@/hooks/useInterval';
@@ -31,10 +43,12 @@ type FilterType = 'year' | 'city' | 'period';
 
 const Index = () => {
   const labels = useLabels();
+  const { language } = useLanguage();
   const { siteTitle, siteUrl } = useSiteMetadata();
-  const { activities, thisYear } = useActivities();
+  const { activities, runningYears, thisYear } = useActivities();
   const themeChangeCounter = useThemeChangeCounter();
   const [year, setYear] = useState(thisYear);
+  const [visibleStatYear, setVisibleStatYear] = useState(thisYear);
   const [runIndex, setRunIndex] = useState(-1);
   const [customTitle, setCustomTitle] = useState('');
   const [showFilterTitle, setShowFilterTitle] = useState(false);
@@ -56,6 +70,14 @@ const Index = () => {
 
   const selectedRunIdRef = useRef<string | null>(null);
   const selectedRunDateRef = useRef<string | null>(null);
+  const runListRef = useRef<HTMLDivElement>(null);
+  const yearScrollRegionRef = useRef<HTMLDivElement>(null);
+  const scrollToTopOnTotalRef = useRef(false);
+  const [listScrollRequest, setListScrollRequest] = useState(0);
+
+  useEffect(() => {
+    preloadTotalStats(language);
+  }, [language]);
 
   // Parse URL hash on mount to check for run ID
   useEffect(() => {
@@ -110,6 +132,8 @@ const Index = () => {
   const [viewState, setViewState] = useState<IViewState>(() => ({
     ...bounds,
   }));
+  const isTotal = year === TOTAL_FILTER_KEY;
+  const showLocationStat = isTotal || (viewState.zoom ?? 0) <= 3;
 
   // Add state for animated geoData to handle the animation effect
   const [animatedGeoData, setAnimatedGeoData] = useState(geoData);
@@ -193,18 +217,30 @@ const Index = () => {
 
   const changeYear = useCallback(
     (y: string) => {
-      // default year
-      setYear(y);
+      const applyYearChange = () => {
+        // default year
+        setYear(y);
 
-      if ((viewState.zoom ?? 0) > 3 && bounds) {
-        setViewState({
-          ...bounds,
-        });
+        if ((viewState.zoom ?? 0) > 3 && bounds) {
+          setViewState({
+            ...bounds,
+          });
+        }
+
+        changeByItem(y, 'year', filterYearRuns);
+        // Stop current animation
+        setIsAnimating(false);
+      };
+
+      if (y === TOTAL_FILTER_KEY) {
+        scrollToTopOnTotalRef.current = true;
+        window.scrollTo({ top: 0, behavior: 'auto' });
+        startTransition(applyYearChange);
+        return;
       }
 
-      changeByItem(y, 'year', filterYearRuns);
-      // Stop current animation
-      setIsAnimating(false);
+      scrollToTopOnTotalRef.current = false;
+      applyYearChange();
     },
     [viewState.zoom, bounds, changeByItem]
   );
@@ -212,6 +248,7 @@ const Index = () => {
   const changeCity = useCallback(
     (city: string) => {
       changeByItem(city, 'city', filterCityRuns);
+      setListScrollRequest((request) => request + 1);
     },
     [changeByItem]
   );
@@ -219,9 +256,72 @@ const Index = () => {
   const changeTitle = useCallback(
     (title: string) => {
       changeByItem(title, 'period', filterTitleRuns);
+      setListScrollRequest((request) => request + 1);
     },
     [changeByItem]
   );
+
+  useLayoutEffect(() => {
+    setVisibleStatYear(year);
+    if (yearScrollRegionRef.current) {
+      yearScrollRegionRef.current.scrollTop = 0;
+    }
+    if (year === TOTAL_FILTER_KEY && scrollToTopOnTotalRef.current) {
+      scrollToTopOnTotalRef.current = false;
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [year]);
+
+  const handleYearRegionScroll = useCallback(
+    (event: UIEvent<HTMLDivElement>) => {
+      if (showLocationStat) return;
+
+      const container = event.currentTarget;
+      const containerTop = container.getBoundingClientRect().top;
+      const switchLine =
+        containerTop + Math.min(64, container.clientHeight * 0.15);
+      const yearElements = Array.from(
+        container.querySelectorAll<HTMLElement>('[data-stat-year]')
+      );
+      const isAtBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight <=
+        1;
+      let visibleYear = isAtBottom
+        ? yearElements.at(-1)?.dataset.statYear
+        : yearElements[0]?.dataset.statYear;
+
+      if (!isAtBottom) {
+        for (const element of yearElements) {
+          if (element.getBoundingClientRect().top > switchLine) break;
+          visibleYear = element.dataset.statYear;
+        }
+      }
+
+      if (visibleYear) setVisibleStatYear(visibleYear);
+    },
+    [showLocationStat]
+  );
+
+  useEffect(() => {
+    if (listScrollRequest === 0 || currentFilter.type === 'year') return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const target = runListRef.current;
+      if (!target) return;
+
+      const scrollOffset =
+        document.getElementById('site-header')?.offsetHeight ?? 0;
+      window.scrollTo({
+        top: Math.max(
+          0,
+          window.scrollY + target.getBoundingClientRect().top - scrollOffset
+        ),
+        behavior: 'auto',
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [currentFilter.type, listScrollRequest]);
 
   // For RunTable compatibility - create a mock setActivity function
   const setActivity = useCallback((_newRuns: Activity[]) => {
@@ -443,24 +543,58 @@ const Index = () => {
     getMapTitle,
     showFilterTitle,
   ]);
-  const showLocationStat =
-    year === TOTAL_FILTER_KEY || (viewState.zoom ?? 0) <= 3;
-
   return (
-    <Layout>
-      <div className="w-full lg:w-1/3">
-        <h1 className="my-12 mt-6 text-5xl font-extrabold italic">
+    <Layout
+      flushBottom
+      headerCenter={<RunMapButtons changeYear={changeYear} thisYear={year} />}
+      stickyHeader={!isTotal}
+    >
+      <div
+        className={
+          isTotal
+            ? 'w-full lg:w-1/3'
+            : 'w-full lg:sticky lg:top-44 lg:flex lg:h-[calc(100vh-11rem)] lg:w-1/3 lg:flex-col'
+        }
+      >
+        <h1 className="my-12 mt-6 text-5xl font-extrabold italic lg:mt-0">
           <a href={siteUrl}>{siteTitle}</a>
         </h1>
-        {showLocationStat ? (
-          <LocationStat
-            changeYear={changeYear}
-            changeCity={changeCity}
-            changeTitle={changeTitle}
-          />
-        ) : (
-          <YearsStat year={year} onClick={changeYear} />
-        )}
+        <section className="pb-0 pr-16">
+          {showLocationStat ? (
+            <p className="leading-relaxed">
+              {labels.locationInfoMessages[0]}
+              <br />
+              {labels.locationInfoMessages[1]}
+              <br />
+              <br />
+              {labels.locationInfoMessages[2]}
+            </p>
+          ) : (
+            <p className="leading-relaxed">
+              {labels.infoMessage(runningYears.length, visibleStatYear)}
+              <br />
+            </p>
+          )}
+        </section>
+        <div
+          ref={yearScrollRegionRef}
+          className={
+            isTotal
+              ? 'year-scroll-region w-full'
+              : 'year-scroll-region w-full lg:min-h-0 lg:flex-1 lg:overflow-y-auto'
+          }
+          onScroll={isTotal ? undefined : handleYearRegionScroll}
+        >
+          {showLocationStat ? (
+            <LocationStat
+              changeYear={changeYear}
+              changeCity={changeCity}
+              changeTitle={changeTitle}
+            />
+          ) : (
+            <YearsStat year={year} onClick={changeYear} />
+          )}
+        </div>
       </div>
       <div className="w-full lg:w-2/3" id="map-container">
         <RunMap
@@ -468,21 +602,25 @@ const Index = () => {
           viewState={viewState}
           geoData={animatedGeoData}
           setViewState={setViewState}
-          changeYear={changeYear}
-          thisYear={year}
           animationTrigger={animationTrigger}
         />
-        {year === TOTAL_FILTER_KEY ? (
-          <SVGStat />
-        ) : (
-          <RunTable
-            runs={runs}
-            locateActivity={locateActivity}
-            setActivity={setActivity}
-            runIndex={runIndex}
-            setRunIndex={setRunIndex}
-          />
-        )}
+        <div ref={runListRef} className="scroll-mt-16">
+          <Suspense
+            fallback={<div className="text-center">{labels.loadingText}</div>}
+          >
+            {year === TOTAL_FILTER_KEY ? (
+              <SVGStat />
+            ) : (
+              <RunTable
+                runs={runs}
+                locateActivity={locateActivity}
+                setActivity={setActivity}
+                runIndex={runIndex}
+                setRunIndex={setRunIndex}
+              />
+            )}
+          </Suspense>
+        </div>
       </div>
       {/* Enable Audiences in Vercel Analytics: https://vercel.com/docs/concepts/analytics/audiences/quickstart */}
       {import.meta.env.VERCEL && <Analytics />}

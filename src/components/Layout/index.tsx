@@ -5,7 +5,18 @@ import Header from '@/components/Header';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
 import useLabels from '@/hooks/useLabels';
 
-const Layout = ({ children }: React.PropsWithChildren) => {
+interface LayoutProps extends React.PropsWithChildren {
+  flushBottom?: boolean;
+  headerCenter?: React.ReactNode;
+  stickyHeader?: boolean;
+}
+
+const Layout = ({
+  children,
+  flushBottom = false,
+  headerCenter,
+  stickyHeader = true,
+}: LayoutProps) => {
   const { siteTitle, description } = useSiteMetadata();
   const labels = useLabels();
 
@@ -21,8 +32,14 @@ const Layout = ({ children }: React.PropsWithChildren) => {
           content="width=device-width, initial-scale=1, shrink-to-fit=no"
         />
       </Helmet>
-      <Header />
-      <div className="mx-auto mb-16 max-w-screen-2xl p-4 lg:flex lg:p-16">
+      <Header center={headerCenter} sticky={stickyHeader} />
+      <div
+        className={
+          flushBottom
+            ? 'mx-auto max-w-screen-2xl p-4 pb-0 lg:flex lg:p-16 lg:pb-0'
+            : 'mx-auto mb-16 max-w-screen-2xl p-4 lg:flex lg:p-16'
+        }
+      >
         {children}
       </div>
     </>
@@ -31,6 +48,9 @@ const Layout = ({ children }: React.PropsWithChildren) => {
 
 Layout.propTypes = {
   children: PropTypes.node.isRequired,
+  flushBottom: PropTypes.bool,
+  headerCenter: PropTypes.node,
+  stickyHeader: PropTypes.bool,
 };
 
 export default Layout;
