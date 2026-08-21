@@ -30,6 +30,30 @@ class YearSummaryDrawer(TracksDrawer):
         if args.type == "year_summary":
             self.year = args.summary_year or datetime.datetime.now().year
 
+    def _activity_terms(self):
+        is_chinese = self.poster.language.startswith("zh")
+        sport_type = self.poster.sport_type
+        chinese_terms = {
+            "all": ("活动次数", "已记录", "运动者"),
+            "running": ("跑步次数", "已跑步", "跑者"),
+            "walking": ("步行次数", "已步行", "运动者"),
+            "cycling": ("骑行次数", "已骑行", "运动者"),
+            "hiking": ("徒步次数", "已徒步", "运动者"),
+            "swimming": ("游泳次数", "已游泳", "运动者"),
+            "skiing": ("滑雪次数", "已滑雪", "运动者"),
+        }
+        english_terms = {
+            "all": ("Activities", "Active for", "Athlete"),
+            "running": ("Runs", "Running for", "Runner"),
+            "walking": ("Walks", "Walking for", "Athlete"),
+            "cycling": ("Rides", "Cycling for", "Athlete"),
+            "hiking": ("Hikes", "Hiking for", "Athlete"),
+            "swimming": ("Swims", "Swimming for", "Athlete"),
+            "skiing": ("Ski activities", "Skiing for", "Athlete"),
+        }
+        terms = chinese_terms if is_chinese else english_terms
+        return terms.get(sport_type, terms["all"])
+
     def draw(self, dr: svgwrite.Drawing, size: XY, offset: XY):
         """Draw the year summary poster"""
         # Colors - use running_page default colors
@@ -51,14 +75,12 @@ class YearSummaryDrawer(TracksDrawer):
         left_width = size.x * 0.40
         right_section_start = offset.x + left_width
 
-        # Draw "Running for X Days" header - align with top of dots (offset.y + 8)
+        count_label, journey_label, athlete_label = self._activity_terms()
         first_run_date = self._get_first_run_date()
         if first_run_date:
             days_ago = (datetime.datetime.now() - first_run_date).days
-            if self.poster.trans("Runner") == "跑者":
-                header_text = f"已跑步 {days_ago} 天"
-            else:
-                header_text = f"Running for {days_ago} Days"
+            day_unit = "天" if self.poster.language.startswith("zh") else "Days"
+            header_text = f"{journey_label} {days_ago} {day_unit}"
         else:
             if self.poster.trans("Runner") == "跑者":
                 header_text = f"{self.year} 年"
@@ -74,10 +96,10 @@ class YearSummaryDrawer(TracksDrawer):
             )
         )
 
-        # Draw race categories
+        is_running = self.poster.sport_type == "running"
         dr.add(
             dr.text(
-                self.poster.trans("Races"),
+                self.poster.trans("Races" if is_running else "Distance Milestones"),
                 insert=(left_margin, offset.y + 34),
                 fill=dim_color,
                 style="font-size:6px; font-family:Arial;",
@@ -85,11 +107,19 @@ class YearSummaryDrawer(TracksDrawer):
         )
 
         # Race format: "1  Full  2x" style - bigger font like Cursor
-        race_categories = [
-            (self.poster.trans("Full"), stats["marathon_count"]),
-            (self.poster.trans("Half"), stats["half_marathon_count"]),
-            ("10K", stats["10k_count"]),
-        ]
+        race_categories = (
+            [
+                (self.poster.trans("Full"), stats["marathon_count"]),
+                (self.poster.trans("Half"), stats["half_marathon_count"]),
+                ("10K", stats["10k_count"]),
+            ]
+            if is_running
+            else [
+                ("42K+", stats["marathon_count"]),
+                ("21-42K", stats["half_marathon_count"]),
+                ("10-21K", stats["10k_count"]),
+            ]
+        )
 
         y_pos = offset.y + 54
         race_num = 1
@@ -156,7 +186,7 @@ class YearSummaryDrawer(TracksDrawer):
                 f"{int(stats['total_distance'])}",
                 self.poster.u(),
             ),
-            (self.poster.trans("Runs"), f"{stats['total_runs']}", ""),
+            (count_label, f"{stats['total_runs']}", ""),
             (self.poster.trans("Avg Pace"), stats["avg_pace"], ""),
             (self.poster.trans("Streak"), f"{stats['streak']}", streak_unit),
             (self.poster.trans("Time"), f"{total_hours}", time_unit),
@@ -227,7 +257,7 @@ class YearSummaryDrawer(TracksDrawer):
         runner_name = self.poster.athlete if self.poster.athlete else "Runner"
         dr.add(
             dr.text(
-                self.poster.trans("Runner"),
+                athlete_label,
                 insert=(left_margin, runner_row_center - 4),
                 fill=dim_color,
                 style="font-size:5px; font-family:Arial;",

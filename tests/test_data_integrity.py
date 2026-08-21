@@ -1,11 +1,14 @@
 import datetime
+import json
 import os
 import tempfile
 import unittest
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
+from xml.etree import ElementTree as ET
 
 import generator as generator_module
 import polyline
@@ -340,6 +343,125 @@ class AuditTest(unittest.TestCase):
             verify = init_db(str(db_path))
             self.assertEqual(1, verify.query(Activity).count())
             verify.close()
+
+
+class GeneratedSvgConsistencyTest(unittest.TestCase):
+    SPORT_TYPES = {
+        "Run": ("running", "跑步次数"),
+        "VirtualRun": ("running", "跑步次数"),
+        "Walk": ("walking", "步行次数"),
+        "Ride": ("cycling", "骑行次数"),
+        "Hike": ("hiking", "徒步次数"),
+        "Swim": ("swimming", "游泳次数"),
+        "Ski": ("skiing", "滑雪次数"),
+    }
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.repo_root = Path(__file__).resolve().parent.parent
+        activities_path = cls.repo_root / "src/static/activities.json"
+        cls.activities = json.loads(activities_path.read_text(encoding="utf-8"))
+
+    @staticmethod
+    def svg_texts(path: Path) -> list[str]:
+        root = ET.parse(path).getroot()
+        return [
+            node.text
+            for node in root.iter()
+            if node.tag.endswith("text") and node.text is not None
+        ]
+
+    @staticmethod
+    def svg_text_path_texts(path: Path) -> list[str]:
+        root = ET.parse(path).getroot()
+        return [
+            node.text
+            for node in root.iter()
+            if node.tag.endswith("textPath") and node.text is not None
+        ]
+
+    def test_activity_year_assets_and_github_counts_match_activity_data(self) -> None:
+        counts: dict[str, int] = defaultdict(int)
+        for activity in self.activities:
+            counts[activity["start_date_local"][:4]] += 1
+
+        assets = self.repo_root / "assets"
+        github_years = {path.stem.removeprefix("github_") for path in assets.glob("github_[0-9][0-9][0-9][0-9].svg")}
+        circular_years = {path.stem.removeprefix("year_") for path in assets.glob("year_[0-9][0-9][0-9][0-9].svg")}
+        circular_english_years = {
+            path.name.removeprefix("year_").removesuffix(".en.svg")
+            for path in assets.glob("year_[0-9][0-9][0-9][0-9].en.svg")
+        }
+        self.assertEqual(set(counts), github_years)
+        self.assertEqual(set(counts), circular_years)
+        self.assertEqual(set(counts), circular_english_years)
+
+        for year, expected_count in counts.items():
+            texts = self.svg_texts(assets / f"github_{year}.svg")
+            count_text = next(text for text in texts if text.startswith("次数: "))
+            self.assertEqual(expected_count, int(count_text.removeprefix("次数: ")))
+
+            circular_texts = self.svg_texts(assets / f"year_{year}.svg")
+            circular_year_labels = set(circular_texts) & set(counts)
+            self.assertEqual({year}, circular_year_labels)
+
+            circular_english_texts = self.svg_texts(
+                assets / f"year_{year}.en.svg"
+            )
+            circular_english_year_labels = set(circular_english_texts) & set(
+                counts
+            )
+            self.assertEqual({year}, circular_english_year_labels)
+
+            self.assertEqual(
+                [f"{month}月" for month in range(1, 13)],
+                self.svg_text_path_texts(assets / f"year_{year}.svg"),
+            )
+            self.assertEqual(
+                [
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September",
+                    "October",
+                    "November",
+                    "December",
+                ],
+                self.svg_text_path_texts(assets / f"year_{year}.en.svg"),
+            )
+
+    def test_year_summary_counts_match_each_sport_type(self) -> None:
+        all_counts: dict[str, int] = defaultdict(int)
+        sport_counts: dict[tuple[str, str], int] = defaultdict(int)
+        for activity in self.activities:
+            year = activity["start_date_local"][:4]
+            all_counts[year] += 1
+            sport_info = self.SPORT_TYPES.get(activity["type"])
+            if sport_info:
+                sport_counts[(sport_info[0], year)] += 1
+
+        assets = self.repo_root / "assets"
+        for year, expected_count in all_counts.items():
+            texts = self.svg_texts(assets / f"year_summary_{year}.svg")
+            label_index = texts.index("活动次数")
+            self.assertEqual(expected_count, int(texts[label_index + 1]))
+
+        for (sport_type, year), expected_count in sport_counts.items():
+            label = next(
+                value[1]
+                for value in self.SPORT_TYPES.values()
+                if value[0] == sport_type
+            )
+            texts = self.svg_texts(
+                assets / f"year_summary_{year}.{sport_type}.svg"
+            )
+            label_index = texts.index(label)
+            self.assertEqual(expected_count, int(texts[label_index + 1]))
 
 
 if __name__ == "__main__":

@@ -45,10 +45,10 @@ const Index = () => {
   const labels = useLabels();
   const { language } = useLanguage();
   const { siteTitle, siteUrl } = useSiteMetadata();
-  const { activities, runningYears, thisYear } = useActivities();
+  const { activities, runningYears, latestActivityYear } = useActivities();
   const themeChangeCounter = useThemeChangeCounter();
-  const [year, setYear] = useState(thisYear);
-  const [visibleStatYear, setVisibleStatYear] = useState(thisYear);
+  const [year, setYear] = useState(latestActivityYear);
+  const [visibleStatYear, setVisibleStatYear] = useState(latestActivityYear);
   const [runIndex, setRunIndex] = useState(-1);
   const [customTitle, setCustomTitle] = useState('');
   const [showFilterTitle, setShowFilterTitle] = useState(false);
@@ -60,7 +60,7 @@ const Index = () => {
     item: string;
     type: FilterType;
     func: (_run: Activity, _value: string) => boolean;
-  }>({ item: thisYear, type: 'year', func: filterYearRuns });
+  }>({ item: latestActivityYear, type: 'year', func: filterYearRuns });
 
   // State to track if we're showing a single run from URL hash
   const [singleRunId, setSingleRunId] = useState<string | null>(null);
@@ -200,7 +200,7 @@ const Index = () => {
     ) => {
       // scrollToMap();
       if (type !== 'year') {
-        setYear(thisYear);
+        setYear(latestActivityYear);
       }
       setCurrentFilter({ item, type, func });
       setRunIndex(-1);
@@ -212,7 +212,7 @@ const Index = () => {
         window.history.pushState(null, '', window.location.pathname);
       }
     },
-    [thisYear]
+    [latestActivityYear]
   );
 
   const changeYear = useCallback(
@@ -416,7 +416,7 @@ const Index = () => {
         }
       } else {
         // If run doesn't exist, clear the hash and show a warning
-        console.warn(`Run with ID ${singleRunId} not found in activities`);
+        console.warn(`Activity with ID ${singleRunId} not found`);
         window.history.replaceState(null, '', window.location.pathname);
         setSingleRunId(null);
       }
@@ -487,7 +487,7 @@ const Index = () => {
           // If the runDate exists in the <title> element, it means that a date square has been clicked.
           const [runDate] = titleEl.innerHTML.match(
             /\d{4}-\d{1,2}-\d{1,2}/
-          ) || [`${+thisYear + 1}`];
+          ) || [`${+latestActivityYear + 1}`];
           const runIDsOnDate = runs
             .filter((r) => r.start_date_local.slice(0, 10) === runDate)
             .map((r) => r.run_id);
@@ -546,7 +546,9 @@ const Index = () => {
   return (
     <Layout
       flushBottom
-      headerCenter={<RunMapButtons changeYear={changeYear} thisYear={year} />}
+      headerCenter={
+        <RunMapButtons changeYear={changeYear} selectedYear={year} />
+      }
       stickyHeader={!isTotal}
     >
       <div

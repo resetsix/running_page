@@ -21,6 +21,27 @@ from .utils import compute_grid
 from .value_range import ValueRange
 from .xy import XY
 
+ZH_MONTH_NAMES = tuple(f"{month}月" for month in range(1, 13))
+EN_MONTH_NAMES = (
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+)
+
+
+def month_name_for_language(month: int, language: str) -> str:
+    names = ZH_MONTH_NAMES if language.startswith("zh") else EN_MONTH_NAMES
+    return names[month - 1]
+
 
 class CircularDrawer(TracksDrawer):
     """Draw a circular Poster for each of the Poster's tracks.
@@ -154,7 +175,9 @@ class CircularDrawer(TracksDrawer):
                 )
                 dr.add(path)
                 tpath = svgwrite.text.TextPath(
-                    path, date.strftime("%B"), startOffset=(0.5 * r3 * (a3 - a1))
+                    path,
+                    month_name_for_language(date.month, self.poster.language),
+                    startOffset=(0.5 * r3 * (a3 - a1)),
                 )
                 text = dr.text(
                     "",

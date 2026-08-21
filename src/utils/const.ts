@@ -85,7 +85,7 @@ const getUIText = (language: Language) => {
   const yearFilterLabel = isChinese ? '年份' : 'Year';
   const cityFilterLabel = isChinese ? '城市' : 'City';
   const periodFilterLabel = isChinese ? '时段' : 'Title';
-  const runningHeatmapLabel = isChinese ? '跑步热力图' : 'Running Heatmap';
+  const runningHeatmapLabel = isChinese ? '运动热力图' : 'Activity Heatmap';
   const journeyLabel = isChinese ? '年度' : 'Journey';
   const runsLabel = isChinese ? '次跑步' : 'Runs';
   const avgPaceLabel = isChinese ? '平均配速' : 'Avg Pace';
@@ -145,9 +145,9 @@ const getUIText = (language: Language) => {
   const allTitle = isChinese ? '全部' : 'All';
   const activityCountTitle = isChinese ? '活动次数' : 'Activity Count';
   const maxDistanceTitle = isChinese ? '最远距离' : 'Max Distance';
-  const maxSpeedTitle = isChinese ? '最快速度' : 'Max Speed';
+  const maxSpeedTitle = isChinese ? '最快配速' : 'Fastest Pace';
   const totalTimeTitle = isChinese ? '总时间' : 'Total Time';
-  const averageSpeedTitle = isChinese ? '平均速度' : 'Average Speed';
+  const averageSpeedTitle = isChinese ? '平均配速' : 'Average Pace';
   const totalDistanceTitle = isChinese ? '总距离' : 'Total Distance';
   const averageDistanceTitle = isChinese ? '平均距离' : 'Average Distance';
   const totalElevationGainTitle = isChinese

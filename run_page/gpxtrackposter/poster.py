@@ -42,6 +42,7 @@ ZH_TRANSLATIONS = {
     "Time": "时长",
     "Longest": "最长",
     "Races": "比赛",
+    "Distance Milestones": "距离里程碑",
     "Full": "全马",
     "Half": "半马",
     "years old": "岁",
@@ -77,6 +78,7 @@ class Poster:
     def __init__(self):
         self.athlete: str | None = None
         self.title: str | None = None
+        self.sport_type = "all"
         self.tracks_by_date: dict[str, list[Any]] = {}
         self.tracks: list[Any] = []
         self.length_range: ValueRange | None = None
@@ -348,8 +350,6 @@ class Poster:
         )
 
     def __compute_years(self, tracks: Sequence[Any]) -> YearRange:
-        if self.years is not None:
-            return self.years
         years = YearRange()
         for t in tracks:
             years.add(t.start_time_local)

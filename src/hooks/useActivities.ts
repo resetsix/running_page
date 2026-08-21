@@ -74,7 +74,7 @@ const useActivities = () => {
 
     const runningYearsArray = [...runningYears].sort().reverse();
     const allYearsArray = [...allYears].sort().reverse();
-    const thisYear = allYearsArray[0] || '';
+    const latestActivityYear = allYearsArray[0] || '';
 
     return {
       activities,
@@ -87,7 +87,7 @@ const useActivities = () => {
       provinces: [...provinces],
       cities,
       runPeriod,
-      thisYear,
+      latestActivityYear,
     };
   }, [activities, runs]);
 

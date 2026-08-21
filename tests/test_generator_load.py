@@ -9,7 +9,10 @@ from unittest import mock
 import generator as generator_module
 import gpxtrackposter.track as track_module
 import polyline
+from gen_svg import tracks_for_year, year_title_for_sport
 from generator.db import Activity
+from gpxtrackposter.circular_drawer import month_name_for_language
+from gpxtrackposter.poster import Poster
 from repair_route_regression import (
     TARGET_SPIKE_BLOCK,
     elevation_gain,
@@ -35,6 +38,7 @@ class GeneratorLoadPurityTest(unittest.TestCase):
         summary_polyline,
         subtype="Run",
         distance=1_000.0,
+        activity_type="Run",
     ):
         activity = Activity(
             run_id=run_id,
@@ -42,7 +46,7 @@ class GeneratorLoadPurityTest(unittest.TestCase):
             distance=distance,
             moving_time=datetime.timedelta(minutes=5),
             elapsed_time=datetime.timedelta(minutes=5),
-            type="Run",
+            type=activity_type,
             subtype=subtype,
             start_date=start_date_local,
             start_date_local=start_date_local,
@@ -53,6 +57,26 @@ class GeneratorLoadPurityTest(unittest.TestCase):
         )
         self.generator.session.add(activity)
         self.generator.session.commit()
+
+    def test_non_run_activity_does_not_extend_running_streak(self):
+        route = polyline.encode([(30.0, 104.0), (30.01, 104.01)])
+        self.add_activity(1, "2020-12-18 08:00:00", route)
+        self.add_activity(2, "2020-12-19 08:00:00", route)
+        self.add_activity(
+            3,
+            "2020-12-20 08:00:00",
+            route,
+            subtype="Walk",
+            activity_type="Walk",
+        )
+        self.add_activity(4, "2020-12-21 08:00:00", route)
+
+        exported = self.generator.load()
+        streaks = {
+            activity["run_id"]: activity.get("streak", 0) for activity in exported
+        }
+
+        self.assertEqual({"1": 1, "2": 2, "3": 0, "4": 1}, streaks)
 
     def read_route_fields(self, run_id):
         with sqlite3.connect(self.db_path) as connection:
@@ -152,6 +176,52 @@ class GeneratorLoadPurityTest(unittest.TestCase):
         self.assertEqual("Run", exported[0]["subtype"])
         self.assertEqual(tiny_route, exported[0]["summary_polyline"])
         self.assertEqual((tiny_route, "Run"), self.read_route_fields(1))
+
+
+class SvgYearFilteringTest(unittest.TestCase):
+    def test_tracks_for_year_returns_only_requested_year(self):
+        tracks = [
+            SimpleNamespace(start_time_local=datetime.datetime(2025, 1, 1)),
+            SimpleNamespace(start_time_local=datetime.datetime(2026, 1, 1)),
+            SimpleNamespace(start_time_local=datetime.datetime(2026, 2, 1)),
+        ]
+
+        filtered = tracks_for_year(tracks, 2026)
+
+        self.assertEqual(2, len(filtered))
+        self.assertTrue(all(track.start_time_local.year == 2026 for track in filtered))
+
+    def test_poster_recomputes_year_range_when_tracks_change(self):
+        tracks = [
+            SimpleNamespace(
+                start_time_local=datetime.datetime(2025, 1, 1), length=1_000
+            ),
+            SimpleNamespace(
+                start_time_local=datetime.datetime(2026, 1, 1), length=1_000
+            ),
+        ]
+        poster = Poster()
+        poster.set_tracks(tracks)
+
+        poster.set_tracks([tracks[1]])
+
+        years = poster.years
+        assert years is not None
+        self.assertEqual({2026: 1}, years.years_dict)
+        self.assertEqual(2026, years.from_year)
+        self.assertEqual(2026, years.to_year)
+
+    def test_circular_month_names_follow_language(self):
+        self.assertEqual("1月", month_name_for_language(1, "zh_CN"))
+        self.assertEqual("12月", month_name_for_language(12, "zh-CN"))
+        self.assertEqual("January", month_name_for_language(1, "en"))
+        self.assertEqual("December", month_name_for_language(12, "en"))
+
+    def test_year_title_uses_sport_context(self):
+        self.assertEqual("2023 活动", year_title_for_sport(2023, "all", "zh_CN"))
+        self.assertEqual(
+            "2023 Cycling", year_title_for_sport(2023, "cycling", "en")
+        )
 
 
 class TargetGpxRepairTest(unittest.TestCase):

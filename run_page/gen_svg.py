@@ -27,6 +27,35 @@ def add_output_suffix(path, suffix):
     return f"{root}{suffix}{ext}"
 
 
+def tracks_for_year(tracks, year):
+    return [track for track in tracks if track.start_time_local.year == year]
+
+
+def year_title_for_sport(year, sport_type, language):
+    if language.startswith("zh"):
+        labels = {
+            "all": "活动",
+            "running": "跑步",
+            "walking": "步行",
+            "cycling": "骑行",
+            "hiking": "徒步",
+            "swimming": "游泳",
+            "skiing": "滑雪",
+        }
+        return f"{year} {labels.get(sport_type, '活动')}"
+
+    labels = {
+        "all": "Activities",
+        "running": "Running",
+        "walking": "Walking",
+        "cycling": "Cycling",
+        "hiking": "Hiking",
+        "swimming": "Swimming",
+        "skiing": "Skiing",
+    }
+    return f"{year} {labels.get(sport_type, 'Activities')}"
+
+
 def main():
     """Handle command line arguments and call other modules as needed."""
 
@@ -258,6 +287,11 @@ def main():
         for sport_type in args.sport_type.split(",")
         if sport_type.strip()
     }
+    p.sport_type = (
+        next(iter(sport_types))
+        if len(sport_types) == 1 and sport_types != {"all"}
+        else "all"
+    )
     if sport_types and sport_types != {"all"}:
         tracks = [track for track in tracks if track.type in sport_types]
 
@@ -320,16 +354,19 @@ def main():
 
     # for special circular
     if is_circular:
-        all_years = years.all()[:]
+        all_years = sorted(years.years_dict)
         output_dir = os.path.dirname(args.output) or "assets"
         for y in all_years:
-            years.from_year, years.to_year = y, y
-            # may be refactor
-            p.set_tracks(tracks)
-            p.draw(drawers[args.type], os.path.join(output_dir, f"year_{str(y)}.svg"))
+            year_tracks = tracks_for_year(tracks, y)
+            p.set_tracks(year_tracks)
+            output_path = add_output_suffix(
+                os.path.join(output_dir, f"year_{str(y)}.svg"),
+                args.output_suffix,
+            )
+            p.draw(drawers[args.type], output_path)
     elif is_year_summary and args.summary_year is None:
         # Generate year summary for all years when --summary-year is not specified
-        all_years = years.all()[:]
+        all_years = sorted(years.years_dict)
         output_dir = os.path.dirname(args.output) or "assets"
         for y in all_years:
             drawers[args.type].year = y
@@ -342,21 +379,18 @@ def main():
             )
     elif is_github and args.year == "all" and args.generate_all_years:
         # Generate GitHub heat map for all years when --generate-all-years flag is set
-        all_years = years.all()[:]
+        all_years = sorted(years.years_dict)
         output_dir = os.path.dirname(args.output) or "assets"
         for y in all_years:
-            years.from_year, years.to_year = y, y
+            year_tracks = tracks_for_year(tracks, y)
             # Single year = height for exactly 1 year row
             p.height = 55 + 1 * 43
-            # Re-set tracks for this year's data
-            p.set_tracks(tracks)
+            p.set_tracks(year_tracks)
             # Use year-specific title if available, otherwise use default
             if args.title:
                 year_title = args.title
-            elif p.language.startswith("zh"):
-                year_title = f"{y} 跑步"
             else:
-                year_title = f"{y} Running"
+                year_title = year_title_for_sport(y, p.sport_type, p.language)
             original_title = p.title
             p.title = year_title
             p.draw(

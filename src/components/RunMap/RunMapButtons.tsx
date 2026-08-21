@@ -5,10 +5,10 @@ import styles from './style.module.css';
 
 const RunMapButtons = ({
   changeYear,
-  thisYear,
+  selectedYear,
 }: {
   changeYear: (_year: string) => void;
-  thisYear: string;
+  selectedYear: string;
 }) => {
   const labels = useLabels();
   const { allYears } = useActivities();
@@ -22,7 +22,7 @@ const RunMapButtons = ({
           <li
             key={`${year}button`}
             className={
-              styles.button + ` ${year === thisYear ? styles.selected : ''}`
+              styles.button + ` ${year === selectedYear ? styles.selected : ''}`
             }
             onPointerDown={(event) => {
               if (event.button === 0) {

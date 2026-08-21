@@ -267,26 +267,28 @@ class Generator:
         activities = query.order_by(Activity.start_date_local)
         activity_list = []
 
-        streak = 0
-        last_date = None
+        run_streak = 0
+        last_run_date = None
         for activity in activities:
             if is_hidden_activity_date(activity.start_date_local):
                 continue
-            # Determine running streak.
             date = datetime.datetime.strptime(
                 activity.start_date_local, "%Y-%m-%d %H:%M:%S"  # type: ignore
             ).date()
-            if last_date is None:
-                streak = 1
-            elif date == last_date:
-                pass
-            elif date == last_date + datetime.timedelta(days=1):
-                streak += 1
+            if activity.type in {"Run", "VirtualRun"}:
+                if last_run_date is None:
+                    run_streak = 1
+                elif date == last_run_date:
+                    pass
+                elif date == last_run_date + datetime.timedelta(days=1):
+                    run_streak += 1
+                else:
+                    assert date > last_run_date
+                    run_streak = 1
+                activity.streak = run_streak  # type: ignore
+                last_run_date = date
             else:
-                assert date > last_date
-                streak = 1
-            activity.streak = streak  # type: ignore
-            last_date = date
+                activity.streak = 0  # type: ignore
             activity_data = activity.to_dict()
             if not IGNORE_BEFORE_SAVING:
                 activity_data["summary_polyline"] = filter_out(

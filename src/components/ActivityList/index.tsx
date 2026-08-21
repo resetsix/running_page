@@ -67,14 +67,19 @@ const yearSummaryCache: Record<
   string,
   React.LazyExoticComponent<SvgComponent>
 > = {};
-const getYearSummarySvg = (year: string, language: 'zh-CN' | 'en') => {
-  const cacheKey = `${year}-${language}`;
+const getYearSummarySvg = (
+  year: string,
+  language: 'zh-CN' | 'en',
+  sportType: string
+) => {
+  const cacheKey = `${year}-${language}-${sportType}`;
+  const path =
+    sportType === 'all'
+      ? `./year_summary_${year}.svg`
+      : `./year_summary_${year}.${sportType}.svg`;
   if (!yearSummaryCache[cacheKey]) {
     yearSummaryCache[cacheKey] = lazy(() =>
-      loadSvgComponent(
-        yearSummaryStats,
-        getLocalizedSvgPath(`./year_summary_${year}.svg`, language)
-      )
+      loadSvgComponent(yearSummaryStats, getLocalizedSvgPath(path, language))
     );
   }
   return yearSummaryCache[cacheKey];
@@ -127,7 +132,6 @@ type IntervalType = 'year' | 'month' | 'week' | 'day' | 'life';
 type SportTypeOption = {
   value: string;
   label: string;
-  disabled?: boolean;
 };
 type IntervalOption = {
   value: IntervalType;
@@ -625,8 +629,6 @@ const ActivityList: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const sportTypeMenuRef = useRef<HTMLDivElement | null>(null);
   const intervalMenuRef = useRef<HTMLDivElement | null>(null);
-  const isSportTypeDisabledInLife = (type: string) =>
-    interval === 'life' && type !== 'all';
   const normalizedSportType = useMemo(
     () => (sportType === 'all' ? 'all' : normalizeActivitySportType(sportType)),
     [sportType]
@@ -663,15 +665,27 @@ const ActivityList: React.FC = () => {
     [labels]
   );
 
-  // Get available years from activities
+  // Get available years for the selected sport type.
   const availableYears = useMemo(() => {
     const years = new Set<string>();
     activities.forEach((activity) => {
-      const year = new Date(activity.start_date_local).getFullYear().toString();
+      if (
+        normalizedSportType !== 'all' &&
+        normalizeActivitySportType(activity.type) !== normalizedSportType
+      ) {
+        return;
+      }
+      const year = activity.start_date_local.slice(0, 4);
       years.add(year);
     });
     return Array.from(years).sort((a, b) => Number(b) - Number(a));
-  }, [activities]);
+  }, [activities, normalizedSportType]);
+
+  useEffect(() => {
+    if (selectedYear && !availableYears.includes(selectedYear)) {
+      setSelectedYear(null);
+    }
+  }, [availableYears, selectedYear]);
 
   // Keyboard navigation for year selection in Life view
   useEffect(() => {
@@ -734,13 +748,6 @@ const ActivityList: React.FC = () => {
     }
   }, [normalizedSportType, sportTypeOptions]);
 
-  // 添加useEffect监听interval变化
-  useEffect(() => {
-    if (interval === 'life' && normalizedSportType !== 'all') {
-      setSportType('all');
-    }
-  }, [interval, normalizedSportType]);
-
   useEffect(() => {
     setIsSportTypeMenuOpen(false);
     setIsIntervalMenuOpen(false);
@@ -795,16 +802,11 @@ const ActivityList: React.FC = () => {
       sportTypeOptions.map((type) => ({
         value: type,
         label: labels.sportTypeLabels[type] ?? type,
-        disabled: isSportTypeDisabledInLife(type),
       })),
-    [labels.sportTypeLabels, sportTypeOptions, interval]
+    [labels.sportTypeLabels, sportTypeOptions]
   );
 
   const handleSportTypeSelect = (type: string) => {
-    if (isSportTypeDisabledInLife(type)) {
-      return;
-    }
-
     setSportType(type);
     setIsSportTypeMenuOpen(false);
   };
@@ -1148,7 +1150,6 @@ const ActivityList: React.FC = () => {
               role="listbox"
             >
               {sportTypeDropdownOptions.map((option) => {
-                const isDisabled = option.disabled ?? false;
                 const isSelected = normalizedSportType === option.value;
 
                 return (
@@ -1157,8 +1158,7 @@ const ActivityList: React.FC = () => {
                     type="button"
                     role="option"
                     aria-selected={isSelected}
-                    disabled={isDisabled}
-                    className={`${styles.filterDropdownItem} ${isSelected ? styles.filterDropdownItemSelected : ''} ${isDisabled ? styles.filterOptionDisabled : ''}`}
+                    className={`${styles.filterDropdownItem} ${isSelected ? styles.filterDropdownItemSelected : ''}`}
                     onClick={() => handleSportTypeSelect(option.value)}
                   >
                     <span className={styles.filterDropdownItemMain}>
@@ -1255,7 +1255,11 @@ const ActivityList: React.FC = () => {
             {selectedYear ? (
               // Show Year Summary SVG when a year is selected
               (() => {
-                const YearSvg = getYearSummarySvg(selectedYear, language);
+                const YearSvg = getYearSummarySvg(
+                  selectedYear,
+                  language,
+                  normalizedSportType
+                );
                 return <YearSvg className={styles.yearSummarySvg} />;
               })()
             ) : (

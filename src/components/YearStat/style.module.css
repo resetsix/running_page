@@ -1,0 +1,52 @@
+.preview {
+  position: fixed;
+  z-index: 60;
+  display: grid;
+  grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 0.75rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 0.75rem;
+  border: 1px solid var(--color-hr-primary);
+  border-radius: 4px;
+  background: var(--color-background);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 20%);
+  opacity: 1;
+  pointer-events: none;
+  contain: layout paint style;
+}
+
+.yearVisual,
+.githubYearVisual {
+  display: flex;
+  min-height: 0;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.yearSvg {
+  display: block;
+  width: min(72%, 18rem);
+  height: auto;
+  max-height: 100%;
+  min-height: 0;
+  border: 0;
+}
+
+.githubYearSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  min-height: 0;
+  border: 0;
+}
+
+.loading {
+  min-height: 8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
