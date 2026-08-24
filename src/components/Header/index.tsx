@@ -173,7 +173,7 @@ const Header = ({ center, sticky = true }: HeaderProps) => {
       className={`${styles.header} ${isHeaderHidden ? styles.headerHidden : ''} ${sticky ? 'sticky top-0' : 'relative'} z-30 w-full`}
     >
       <nav className="pointer-events-none relative z-10 mx-auto flex w-full max-w-screen-2xl items-center justify-between pl-6 pt-12 lg:px-16">
-        <div className="pointer-events-auto">
+        <div className={`${styles.headerLogo} pointer-events-auto`}>
           <Link to={siteUrl}>
             <picture>
               <img className="h-16 w-16 rounded-full" alt="logo" src={logo} />

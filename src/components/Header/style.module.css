@@ -36,6 +36,7 @@
   transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
 }
 
+.headerLogo,
 .headerActions,
 .headerCenter {
   opacity: 1;
@@ -58,6 +59,17 @@
 
 .headerActions {
   background-color: var(--color-background);
+}
+
+@media (max-width: 1023px) {
+  .headerHidden .headerLogo {
+    pointer-events: none;
+    opacity: 0;
+    transform: translate3d(0, -12rem, 0);
+    transition:
+      transform 360ms cubic-bezier(0.4, 0, 1, 1),
+      opacity 360ms cubic-bezier(0.4, 0, 1, 1);
+  }
 }
 
 .desktopCenterPanel {
@@ -94,8 +106,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   .header,
+  .headerLogo,
   .headerActions,
   .headerCenter {
+    transition: none;
+  }
+
+  .headerHidden .headerLogo,
+  .headerHidden .headerActions,
+  .headerHidden .headerCenter {
     transition: none;
   }
 }
